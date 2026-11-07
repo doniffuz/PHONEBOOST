@@ -5,6 +5,32 @@ Clean • Optimize • Boost
 ```
 pkg install openjdk-17 gradle aapt2
 export ANDROID_HOME=$HOME/android-sdk   # platforms;android-35 va build-tools kerak
-./build.sh                              # debug APK
-./build.sh assembleRelease              # release APK
+./build.sh                              # debug APK  -> app/build/outputs/apk/debug/app-debug.apk
+./build.sh assembleRelease              # release APK -> app/build/outputs/apk/release/
+./build.sh bundleRelease                # Play Market AAB -> app/build/outputs/bundle/release/
 ```
+
+## Release sozlamalari (kodda emas, ~/.gradle/gradle.properties ichida)
+```
+PB_ADMOB_APP_ID=...            # TODO: haqiqiy AdMob ID kerak
+PB_AD_BANNER_ID=...
+PB_AD_INTERSTITIAL_ID=...
+PB_AD_REWARDED_ID=...
+PB_DONATION_URL=...            # ixtiyoriy; bo'sh = tugma o'chiq
+PB_CONTACT_EMAIL=...           # ixtiyoriy; bo'sh = tugma o'chiq
+PB_PRIVACY_POLICY_URL=...      # TODO: Play Market uchun majburiy
+```
+- Debug build: Google TEST reklama ID lari.
+- Release build: 4 ta AdMob ID ham berilmasa reklama **o'chirilgan** (SDK ishga tushmaydi). Test ID release'da ishlatilmaydi.
+  (Manifestdagi APPLICATION_ID maydoni SDK crash qilmasligi uchun to'ldiriladi, lekin reklama chiqmaydi.)
+
+## Imzolash
+`keystore.properties.example` ni `keystore.properties` ga nusxalab to'ldiring (gitignore'da, kodga yozilmaydi).
+Kalit yaratish: `keytool -genkeypair -v -keystore release.jks -alias phoneboost -keyalg RSA -keysize 2048 -validity 10000`
+`keystore.properties` bo'lmasa release imzosiz chiqadi (Play Market/o'rnatish uchun yaroqsiz).
+
+## TOP 10
+`app/src/main/assets/supporters.json`: `[{"name":"Ali","amount":50000,"anonymous":false}]`
+
+## Tillar
+`res/values` (O'zbek, default), `res/values-ru`, `res/values-en` — kalitlar bir xil.

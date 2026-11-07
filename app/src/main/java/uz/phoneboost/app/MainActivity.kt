@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import uz.phoneboost.app.ads.Ads
 import uz.phoneboost.app.core.designsystem.PhoneBoostTheme
 import uz.phoneboost.app.core.designsystem.isDark
 import uz.phoneboost.app.features.home.HomeViewModel
@@ -23,6 +24,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Reklama SDK fon oqimida ishga tushadi; ilova ochilishini sekinlashtirmaydi.
+        Ads.init(application)
         setContent {
             val mode by settingsViewModel.themeMode.collectAsStateWithLifecycle()
             val current = mode

@@ -79,3 +79,26 @@ fun temperatureStatus(tempC: Float?): String = stringResource(
 fun formatTemp(tempC: Float?): String =
     if (tempC == null) stringResource(R.string.unknown)
     else String.format(Locale.getDefault(), "%.1f°C", tempC)
+
+@Composable
+fun hwStateText(state: uz.phoneboost.app.domain.model.HwState): String = stringResource(
+    when (state) {
+        uz.phoneboost.app.domain.model.HwState.ON -> R.string.hw_on
+        uz.phoneboost.app.domain.model.HwState.OFF -> R.string.hw_off
+        uz.phoneboost.app.domain.model.HwState.PRESENT -> R.string.hw_present
+        uz.phoneboost.app.domain.model.HwState.ABSENT -> R.string.hw_absent
+    }
+)
+
+@Composable
+fun thermalText(level: uz.phoneboost.app.domain.model.ThermalLevel): String? {
+    val res: Int? = when (level) {
+        uz.phoneboost.app.domain.model.ThermalLevel.NONE -> R.string.thermal_none
+        uz.phoneboost.app.domain.model.ThermalLevel.LIGHT -> R.string.thermal_light
+        uz.phoneboost.app.domain.model.ThermalLevel.MODERATE -> R.string.thermal_moderate
+        uz.phoneboost.app.domain.model.ThermalLevel.SEVERE -> R.string.thermal_severe
+        uz.phoneboost.app.domain.model.ThermalLevel.CRITICAL -> R.string.thermal_critical
+        uz.phoneboost.app.domain.model.ThermalLevel.UNKNOWN -> null
+    }
+    return if (res == null) null else stringResource(res)
+}

@@ -5,7 +5,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
+import android.os.Build
 import android.os.Environment
+import android.os.PowerManager
 import android.os.StatFs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,6 +15,8 @@ import uz.phoneboost.app.domain.model.BatteryHealth
 import uz.phoneboost.app.domain.model.ChargeState
 import uz.phoneboost.app.domain.model.DeviceStatus
 import uz.phoneboost.app.domain.model.PowerSource
+import uz.phoneboost.app.domain.model.ThermalLevel
+import kotlin.math.abs
 
 /** Faqat ruxsat talab qilmaydigan, standart Android API'lar. */
 class DeviceStatusRepository(private val context: Context) {
@@ -27,8 +31,33 @@ class DeviceStatusRepository(private val context: Context) {
             val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
             val info = ActivityManager.MemoryInfo()
             am.getMemoryInfo(info)
-            info.totalMem to info.availMem
+            Triple(info.totalMem, info.availMem, info.lowMemory)
         }.getOrNull()
+
+        val currentMa = runCatching {
+            val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+            val raw = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
+            // Ko‘p qurilmalarda µA, ba’zilarida mA. Real tok kamida o‘nlab mA bo‘ladi.
+            if (raw == null || raw == Int.MIN_VALUE || raw == 0) null
+            else if (abs(raw) >= 10_000) abs(raw) / 1000 else abs(raw)
+        }.getOrNull()
+
+        val power = runCatching { context.getSystemService(Context.POWER_SERVICE) as? PowerManager }.getOrNull()
+        val powerSave = runCatching { power?.isPowerSaveMode }.getOrNull()
+        val thermal = runCatching {
+            if (Build.VERSION.SDK_INT >= 29 && power != null) {
+                when (power.currentThermalStatus) {
+                    PowerManager.THERMAL_STATUS_NONE -> ThermalLevel.NONE
+                    PowerManager.THERMAL_STATUS_LIGHT -> ThermalLevel.LIGHT
+                    PowerManager.THERMAL_STATUS_MODERATE -> ThermalLevel.MODERATE
+                    PowerManager.THERMAL_STATUS_SEVERE -> ThermalLevel.SEVERE
+                    PowerManager.THERMAL_STATUS_CRITICAL,
+                    PowerManager.THERMAL_STATUS_EMERGENCY,
+                    PowerManager.THERMAL_STATUS_SHUTDOWN -> ThermalLevel.CRITICAL
+                    else -> ThermalLevel.UNKNOWN
+                }
+            } else ThermalLevel.UNKNOWN
+        }.getOrDefault(ThermalLevel.UNKNOWN)
 
         val battery: Intent? = runCatching {
             context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -77,12 +106,15 @@ class DeviceStatusRepository(private val context: Context) {
 
         val voltage = battery?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, -1)?.takeIf { it > 0 }
         val technology = battery?.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)?.takeIf { it.isNotBlank() }
+        // EXTRA_CYCLE_COUNT (API 34). Qurilma bermasa -1 yoki 0 bo‘ladi.
+        val cycles = battery?.getIntExtra("android.os.extra.CYCLE_COUNT", -1)?.takeIf { it > 0 }
 
         DeviceStatus(
             storageTotalBytes = storage?.first,
             storageFreeBytes = storage?.second,
             ramTotalBytes = ram?.first,
             ramAvailableBytes = ram?.second,
+            lowMemory = ram?.third,
             batteryPercent = percent,
             batteryTempC = tempC,
             isCharging = charging,
@@ -90,7 +122,11 @@ class DeviceStatusRepository(private val context: Context) {
             powerSource = powerSource,
             batteryHealth = health,
             batteryVoltageMv = voltage,
-            batteryTechnology = technology
+            batteryTechnology = technology,
+            batteryCurrentMa = currentMa,
+            batteryCycleCount = cycles,
+            thermalLevel = thermal,
+            powerSaveMode = powerSave
         )
     }
 }

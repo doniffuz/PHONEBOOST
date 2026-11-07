@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import uz.phoneboost.app.R
 import uz.phoneboost.app.core.util.openSettings
+import uz.phoneboost.app.domain.AppTarget
 import uz.phoneboost.app.domain.Recommendation
 import uz.phoneboost.app.domain.RecommendationType
 import uz.phoneboost.app.domain.SettingsAction
@@ -44,11 +45,21 @@ private fun RecommendationType.texts(): RecTexts = when (this) {
     RecommendationType.BATTERY_LOW -> RecTexts(
         R.string.rec_battery_title, R.string.rec_battery_reason, R.string.rec_battery_todo
     )
+    RecommendationType.LARGE_FILES -> RecTexts(
+        R.string.rec_large_title, R.string.rec_large_reason, R.string.rec_large_todo
+    )
+    RecommendationType.BATTERY_HEALTH -> RecTexts(
+        R.string.rec_bhealth_title, R.string.rec_bhealth_reason, R.string.rec_bhealth_todo
+    )
 }
 
 /** Muammo, sabab, nima qilish kerak va (kerak bo‘lsa) Sozlamalarni ochish tugmasi. */
 @Composable
-fun RecommendationCard(recommendation: Recommendation, modifier: Modifier = Modifier) {
+fun RecommendationCard(
+    recommendation: Recommendation,
+    modifier: Modifier = Modifier,
+    onOpenTarget: (AppTarget) -> Unit = {}
+) {
     val context = LocalContext.current
     val type = recommendation.type
     val texts = type.texts()
@@ -81,6 +92,20 @@ fun RecommendationCard(recommendation: Recommendation, modifier: Modifier = Modi
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
+            if (type.target != AppTarget.NONE) {
+                Button(
+                    onClick = { onOpenTarget(type.target) },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        stringResource(
+                            if (type.target == AppTarget.STORAGE) R.string.action_open_storage else R.string.action_open_battery
+                        ),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
             if (type.action != SettingsAction.NONE) {
                 Text(
                     stringResource(R.string.settings_note),

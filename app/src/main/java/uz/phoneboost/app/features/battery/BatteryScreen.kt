@@ -37,6 +37,7 @@ import uz.phoneboost.app.core.ui.batteryHealthText
 import uz.phoneboost.app.core.ui.chargeStateText
 import uz.phoneboost.app.core.ui.formatTemp
 import uz.phoneboost.app.core.ui.powerSourceText
+import uz.phoneboost.app.core.ui.thermalText
 import uz.phoneboost.app.domain.model.BatteryHealth
 import uz.phoneboost.app.domain.model.ChargeState
 import uz.phoneboost.app.domain.model.PowerSource
@@ -111,7 +112,19 @@ fun BatteryScreen(viewModel: HomeViewModel, onBack: () -> Unit) {
                             String.format(Locale.getDefault(), "%.2f V", it / 1000f)
                         } ?: unknown
                     )
+                    InfoRow(
+                        stringResource(R.string.row_current),
+                        status?.batteryCurrentMa?.let { "≈ $it mA" } ?: stringResource(R.string.no_data)
+                    )
                     InfoRow(stringResource(R.string.row_tech), status?.batteryTechnology ?: unknown)
+                    InfoRow(
+                        stringResource(R.string.row_cycles),
+                        status?.batteryCycleCount?.toString() ?: stringResource(R.string.no_data)
+                    )
+                    val thermal = status?.let { thermalText(it.thermalLevel) }
+                    if (thermal != null) {
+                        InfoRow(stringResource(R.string.row_thermal), thermal)
+                    }
                     if (health != null) {
                         InfoRow(stringResource(R.string.row_health), health)
                     }

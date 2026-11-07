@@ -24,7 +24,9 @@ data class HomeUiState(
     val checkedAtMillis: Long? = null,
     val scanning: Boolean = false,
     val scanStep: Int = 0,
-    val showResults: Boolean = false
+    val showResults: Boolean = false,
+    /** Yakunlangan optimallashtirishlar soni (reklama qoidalari uchun). */
+    val scanCount: Int = 0
 ) {
     fun withStatus(status: DeviceStatus): HomeUiState = copy(
         status = status,
@@ -66,7 +68,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 _state.update { it.copy(scanStep = index + 1) }
             }
             delay(250)
-            _state.update { it.withStatus(status).copy(scanning = false, showResults = true) }
+            _state.update { it.withStatus(status).copy(scanning = false, showResults = true, scanCount = it.scanCount + 1) }
         }
     }
 }

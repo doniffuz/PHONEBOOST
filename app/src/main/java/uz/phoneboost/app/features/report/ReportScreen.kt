@@ -38,6 +38,12 @@ import uz.phoneboost.app.core.ui.formatTemp
 import uz.phoneboost.app.core.ui.healthColor
 import uz.phoneboost.app.core.ui.healthLabelRes
 import uz.phoneboost.app.core.ui.temperatureStatus
+import uz.phoneboost.app.ads.BannerAd
+import uz.phoneboost.app.core.ui.batteryHealthText
+import uz.phoneboost.app.core.ui.thermalText
+import uz.phoneboost.app.domain.AppTarget
+import uz.phoneboost.app.domain.ScoreArea
+import uz.phoneboost.app.domain.model.BatteryHealth
 import uz.phoneboost.app.domain.model.ChargeState
 import uz.phoneboost.app.features.home.HomeViewModel
 import uz.phoneboost.app.features.home.RecommendationCard
@@ -46,7 +52,7 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun ReportScreen(viewModel: HomeViewModel) {
+fun ReportScreen(viewModel: HomeViewModel, onOpenTarget: (AppTarget) -> Unit = {}) {
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -104,6 +110,37 @@ fun ReportScreen(viewModel: HomeViewModel) {
                     )
                 }
                 InfoRow(stringResource(R.string.report_last_check), checkedAt)
+                val penalties = result?.penalties.orEmpty()
+                if (result != null) {
+                    Spacer(Modifier.height(4.dp))
+                    if (penalties.isEmpty()) {
+                        Text(
+                            stringResource(R.string.score_no_penalties),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = BrandColors.Good
+                        )
+                    } else {
+                        Text(
+                            stringResource(R.string.score_penalties_title),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        penalties.forEach { p ->
+                            InfoRow(
+                                stringResource(
+                                    when (p.area) {
+                                        ScoreArea.STORAGE -> R.string.report_card_storage
+                                        ScoreArea.RAM -> R.string.report_card_ram
+                                        ScoreArea.BATTERY -> R.string.stat_battery
+                                        ScoreArea.TEMPERATURE -> R.string.stat_temperature
+                                        ScoreArea.DEVICE -> R.string.report_card_device
+                                    }
+                                ),
+                                "−${p.points}"
+                            )
+                        }
+                    }
+                }
             }
 
             // Saqlash joyi
@@ -145,12 +182,24 @@ fun ReportScreen(viewModel: HomeViewModel) {
                     stringResource(R.string.row_status),
                     chargeStateText(status?.chargeState ?: ChargeState.UNKNOWN)
                 )
+                val bHealth = batteryHealthText(status?.batteryHealth ?: BatteryHealth.UNKNOWN)
+                if (bHealth != null) {
+                    InfoRow(stringResource(R.string.row_health), bHealth)
+                } else {
+                    Text(
+                        stringResource(R.string.battery_health_unavailable),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
 
             // Harorat
             SectionCard(R.string.stat_temperature) {
                 InfoRow(stringResource(R.string.stat_temperature), formatTemp(status?.batteryTempC))
                 InfoRow(stringResource(R.string.row_status), temperatureStatus(status?.batteryTempC))
+                val thermal = status?.let { thermalText(it.thermalLevel) }
+                if (thermal != null) InfoRow(stringResource(R.string.row_thermal), thermal)
             }
 
             // Qurilma
@@ -177,9 +226,10 @@ fun ReportScreen(viewModel: HomeViewModel) {
                     color = BrandColors.Good
                 )
             } else {
-                state.recommendations.forEach { RecommendationCard(it) }
+                state.recommendations.forEach { RecommendationCard(it, onOpenTarget = onOpenTarget) }
             }
             Spacer(Modifier.height(8.dp))
+            BannerAd()
         }
     }
 }

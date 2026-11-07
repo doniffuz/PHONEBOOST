@@ -2,7 +2,9 @@ package uz.phoneboost.app.features.settings
 
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,13 +19,17 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -35,6 +41,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uz.phoneboost.app.R
+import uz.phoneboost.app.core.AppConfig
+import uz.phoneboost.app.core.util.openEmail
+import uz.phoneboost.app.core.util.openOwnNotificationSettings
+import uz.phoneboost.app.core.util.openRateApp
+import uz.phoneboost.app.core.util.openUrl
 import uz.phoneboost.app.data.settings.ThemeMode
 
 private val languages = listOf(
@@ -55,6 +66,8 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
     val context = LocalContext.current
     val lang = LocalConfiguration.current.locales.get(0).language
     val currentLang = if (lang == "ru" || lang == "en") lang else "uz"
+    var showPrivacy by remember { mutableStateOf(false) }
+    val unavailable = stringResource(R.string.settings_unavailable)
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
             .getOrNull() ?: "—"
@@ -117,6 +130,37 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 }
             }
 
+            SectionTitle(R.string.settings_general)
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)),
+                shadowElevation = 2.dp
+            ) {
+                Column(Modifier.fillMaxWidth()) {
+                    SettingsRow(R.string.settings_notifications, R.string.settings_notifications_hint) {
+                        if (!context.openOwnNotificationSettings()) {
+                            Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    SettingsRow(R.string.settings_privacy, R.string.settings_privacy_hint) { showPrivacy = true }
+                    SettingsRow(R.string.settings_rate, R.string.settings_rate_hint) {
+                        if (!context.openRateApp()) {
+                            Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    SettingsRow(
+                        R.string.settings_contact,
+                        if (AppConfig.CONTACT_EMAIL.isBlank()) R.string.settings_contact_not_set else R.string.settings_contact_hint,
+                        enabled = AppConfig.CONTACT_EMAIL.isNotBlank()
+                    ) {
+                        if (!context.openEmail(AppConfig.CONTACT_EMAIL)) {
+                            Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+
             SectionTitle(R.string.settings_about)
             Surface(
                 shape = RoundedCornerShape(20.dp),
@@ -138,6 +182,59 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 }
             }
         }
+    }
+
+    if (showPrivacy) {
+        AlertDialog(
+            onDismissRequest = { showPrivacy = false },
+            title = { Text(stringResource(R.string.settings_privacy)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    Text(stringResource(R.string.privacy_policy_text))
+                }
+            },
+            confirmButton = {
+                if (AppConfig.PRIVACY_POLICY_URL.isNotBlank()) {
+                    TextButton(onClick = {
+                        if (!context.openUrl(AppConfig.PRIVACY_POLICY_URL)) {
+                            Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
+                        }
+                    }) { Text(stringResource(R.string.privacy_full_policy)) }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPrivacy = false }) { Text(stringResource(R.string.close)) }
+            }
+        )
+    }
+}
+
+@Composable
+private fun SettingsRow(
+    @StringRes title: Int,
+    @StringRes hint: Int,
+    enabled: Boolean = true,
+    onClick: () -> Unit
+) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick)
+            .heightIn(min = 64.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            stringResource(title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            stringResource(hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

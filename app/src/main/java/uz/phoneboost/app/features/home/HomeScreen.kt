@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,12 +56,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uz.phoneboost.app.R
+import uz.phoneboost.app.ads.Ads
+import uz.phoneboost.app.core.ui.OnResume
+import uz.phoneboost.app.core.ui.findActivity
+import uz.phoneboost.app.domain.AppTarget
 import uz.phoneboost.app.core.designsystem.BrandColors
 import uz.phoneboost.app.domain.HealthLevel
 import uz.phoneboost.app.domain.model.DeviceStatus
 import java.util.Locale
 
-enum class FeatureKey { SPEED, GAME, BATTERY, STORAGE, DIAGNOSTICS, PHONE }
+enum class FeatureKey { SPEED, GAME, BATTERY, STORAGE, DIAGNOSTICS, PHONE, PRIVACY, APPS }
 
 private data class Feature(val key: FeatureKey, val emoji: String, @StringRes val title: Int)
 
@@ -70,15 +75,23 @@ private val features = listOf(
     Feature(FeatureKey.BATTERY, "🔋", R.string.feature_battery),
     Feature(FeatureKey.STORAGE, "💾", R.string.feature_memory),
     Feature(FeatureKey.DIAGNOSTICS, "🛡", R.string.feature_diagnostics),
-    Feature(FeatureKey.PHONE, "📱", R.string.feature_phone)
+    Feature(FeatureKey.PHONE, "📱", R.string.feature_phone),
+    Feature(FeatureKey.PRIVACY, "🔒", R.string.feature_privacy),
+    Feature(FeatureKey.APPS, "📦", R.string.feature_apps)
 )
 
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    onFeatureClick: (FeatureKey) -> Unit
+    onFeatureClick: (FeatureKey) -> Unit,
+    onOpenTarget: (AppTarget) -> Unit = {}
 ) {
+    OnResume { viewModel.refresh() }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val activity = LocalContext.current.findActivity()
+    LaunchedEffect(state.scanCount) {
+        if (state.scanCount > 0 && activity != null) Ads.onOptimizationCompleted(activity, state.scanCount)
+    }
     val colors = MaterialTheme.colorScheme
 
     Box(
@@ -118,7 +131,7 @@ fun HomeScreen(
                 ScanSteps(state.scanStep)
                 Spacer(Modifier.height(20.dp))
             } else if (state.showResults) {
-                ScanResults(state.recommendations)
+                ScanResults(state.recommendations, onOpenTarget)
                 Spacer(Modifier.height(20.dp))
             }
             StatGrid(state.status)

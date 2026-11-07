@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import uz.phoneboost.app.R
 import uz.phoneboost.app.core.designsystem.BrandColors
+import uz.phoneboost.app.domain.AppTarget
 import uz.phoneboost.app.domain.Recommendation
 
 private val scanSteps = listOf(
@@ -21,7 +22,8 @@ private val scanSteps = listOf(
     R.string.step_battery,
     R.string.step_temperature,
     R.string.step_charging,
-    R.string.step_system
+    R.string.step_system,
+    R.string.step_large_files
 )
 
 /** Tekshiruv davomida: bajarilgan bosqichlar ro‘yxati. */
@@ -43,7 +45,7 @@ internal fun ScanSteps(done: Int) {
 
 /** Tekshiruv yakunida: natija va tavsiyalar. */
 @Composable
-internal fun ScanResults(recommendations: List<Recommendation>) {
+internal fun ScanResults(recommendations: List<Recommendation>, onOpenTarget: (AppTarget) -> Unit = {}) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             stringResource(R.string.result_done),
@@ -64,7 +66,7 @@ internal fun ScanResults(recommendations: List<Recommendation>) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            recommendations.forEach { RecommendationCard(it) }
+            recommendations.forEach { RecommendationCard(it, onOpenTarget = onOpenTarget) }
         }
     }
 }

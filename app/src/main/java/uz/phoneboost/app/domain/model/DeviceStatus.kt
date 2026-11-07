@@ -4,6 +4,9 @@ enum class ChargeState { CHARGING, DISCHARGING, NOT_CHARGING, FULL, UNKNOWN }
 enum class PowerSource { BATTERY, AC, USB, WIRELESS, UNKNOWN }
 enum class BatteryHealth { GOOD, OVERHEAT, DEAD, OVER_VOLTAGE, FAILURE, COLD, UNKNOWN }
 
+/** Android PowerManager termal holati (API 29+). */
+enum class ThermalLevel { NONE, LIGHT, MODERATE, SEVERE, CRITICAL, UNKNOWN }
+
 /** Telefonning haqiqiy o‘lchangan holati. Null = ma’lumot mavjud emas. */
 data class DeviceStatus(
     val storageTotalBytes: Long?,
@@ -17,7 +20,12 @@ data class DeviceStatus(
     val powerSource: PowerSource = PowerSource.UNKNOWN,
     val batteryHealth: BatteryHealth = BatteryHealth.UNKNOWN,
     val batteryVoltageMv: Int? = null,
-    val batteryTechnology: String? = null
+    val batteryTechnology: String? = null,
+    val batteryCurrentMa: Int? = null,
+    val batteryCycleCount: Int? = null,
+    val thermalLevel: ThermalLevel = ThermalLevel.UNKNOWN,
+    val lowMemory: Boolean? = null,
+    val powerSaveMode: Boolean? = null
 ) {
     val storageUsedBytes: Long?
         get() {

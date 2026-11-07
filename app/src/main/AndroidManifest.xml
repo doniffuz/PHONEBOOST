@@ -1,12 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Hech qaysi permission foydalanuvchidan avtomatik so'ralmaydi. Quyidagilar oddiy (install-time) permissionlar. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
+
+    <!-- Faqat Storage sahifasida, foydalanuvchi "Katta fayllarni topish" tugmasini bosganda so'raladi. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+
+    <queries>
+        <!-- Ilovalar ro'yxati (QUERY_ALL_PACKAGES kerak emas): faqat launcher'da ko'rinadigan ilovalar. -->
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <!-- Game Boost: qo'llab-quvvatlanadigan o'yinlar. -->
+        <package android:name="com.tencent.ig" />
+        <package android:name="com.pubg.krmobile" />
+        <package android:name="com.vng.pubgmobile" />
+        <package android:name="com.dts.freefireth" />
+        <package android:name="com.dts.freefiremax" />
+        <package android:name="com.activision.callofduty.shooter" />
+        <package android:name="com.mobile.legends" />
+        <package android:name="com.supercell.brawlstars" />
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.PhoneBoost">
+
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
 
         <activity
             android:name=".MainActivity"
