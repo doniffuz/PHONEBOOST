@@ -139,7 +139,7 @@
     <string name="device_card_general">Общее</string>
     <string name="device_card_hardware">Железо</string>
     <string name="diag_attention">⚠ Внимание</string>
-    <string name="diag_check">? Нужна проверка</string>
+    <string name="diag_check">\? Нужна проверка</string>
     <string name="diag_good">✓ Хорошо</string>
     <string name="diag_low_memory">Android сообщает о нехватке памяти.</string>
     <string name="diag_note">Это не антивирус: проверка лишь читает реальные показатели, которые отдаёт Android.</string>

@@ -141,7 +141,7 @@
     <string name="device_card_general">Umumiy</string>
     <string name="device_card_hardware">Uskuna</string>
     <string name="diag_attention">⚠ E’tibor</string>
-    <string name="diag_check">? Tekshirish kerak</string>
+    <string name="diag_check">\? Tekshirish kerak</string>
     <string name="diag_good">✓ Yaxshi</string>
     <string name="diag_low_memory">Android xotira kamligini bildirdi.</string>
     <string name="diag_note">Bu tekshiruv virus skaneri emas: faqat Android bergan real ko‘rsatkichlarni o‘qiydi.</string>

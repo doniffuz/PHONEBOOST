@@ -139,7 +139,7 @@
     <string name="device_card_general">General</string>
     <string name="device_card_hardware">Hardware</string>
     <string name="diag_attention">⚠ Attention</string>
-    <string name="diag_check">? Needs checking</string>
+    <string name="diag_check">\? Needs checking</string>
     <string name="diag_good">✓ Good</string>
     <string name="diag_low_memory">Android reports low memory.</string>
     <string name="diag_note">This is not a virus scanner: it only reads real values provided by Android.</string>
