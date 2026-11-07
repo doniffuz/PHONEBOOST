@@ -181,6 +181,12 @@ jobs:
             else
               echo "  (build fayllari yaratilmadi — build.log ga qarang)"
             fi
+            if [ -f build.log ] && grep -qE '^e: |What went wrong|BUILD FAILED' build.log; then
+              echo
+              echo "KOMPILYATSIYA / GRADLE XATOLARI (build.log dan, fayl:qator bilan):"
+              grep -E '^e: ' build.log | sed 's#file:///home/runner/work/[^/]*/[^/]*/##' | head -60
+              grep -A6 'What went wrong' build.log | head -30
+            fi
             echo
             echo "Eslatma: bu hisobot faqat shu workflow ishida haqiqatan bajarilgan qadamlarni ko‘rsatadi."
             echo "Telefonda qo‘lda sinov (Animation Speed, PDF, bildirishnomalar) bu build bilan TASDIQLANMAGAN."
