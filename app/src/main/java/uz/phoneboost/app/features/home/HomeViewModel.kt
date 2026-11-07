@@ -74,7 +74,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }
             delay(250)
             // Natija tarixga saqlanadi (faqat shu telefonda).
-            val score = HealthScoreCalculator.calculate(status).score
+            val score = HealthScoreCalculator.calculate(status)?.score
             withContext(Dispatchers.IO) { runCatching { history.add(HistoryEntry.from(status, score, HistoryEntry.SOURCE_MANUAL)) } }
             _state.update { it.withStatus(status).copy(scanning = false, showResults = true, scanCount = it.scanCount + 1) }
         }

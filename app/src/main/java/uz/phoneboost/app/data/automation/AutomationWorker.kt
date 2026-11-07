@@ -28,7 +28,7 @@ class AutomationWorker(context: Context, params: WorkerParameters) : CoroutineWo
         if (!forced && !prefs.enabled) return Result.success()
 
         val status = DeviceStatusRepository(ctx).read()
-        val score = HealthScoreCalculator.calculate(status).score
+        val score = HealthScoreCalculator.calculate(status)?.score
         HistoryRepository(ctx).add(HistoryEntry.from(status, score, HistoryEntry.SOURCE_AUTO))
         prefs.lastRunMillis = System.currentTimeMillis()
 
