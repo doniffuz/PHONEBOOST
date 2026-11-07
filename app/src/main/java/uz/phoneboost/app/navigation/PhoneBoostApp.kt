@@ -37,6 +37,8 @@ import uz.phoneboost.app.features.home.FeatureKey
 import uz.phoneboost.app.features.home.HomeScreen
 import uz.phoneboost.app.features.home.HomeViewModel
 import uz.phoneboost.app.features.privacy.PrivacyScreen
+import uz.phoneboost.app.features.automation.AutomationScreen
+import uz.phoneboost.app.features.history.HistoryScreen
 import uz.phoneboost.app.features.report.ReportScreen
 import uz.phoneboost.app.features.settings.SettingsScreen
 import uz.phoneboost.app.features.settings.SettingsViewModel
@@ -53,6 +55,8 @@ private object Route {
     const val DEVICE = "device"
     const val PRIVACY = "privacy"
     const val APPS = "apps"
+    const val HISTORY = "history"
+    const val AUTOMATION = "automation"
 
     /** Bosh sahifadan ochiladigan ichki sahifalar: pastki navigatsiyada “Bosh sahifa” tanlangan ko‘rinadi. */
     val homeChildren = setOf(BATTERY, SPEED, GAME, STORAGE, DIAGNOSTICS, DEVICE, PRIVACY, APPS)
@@ -96,7 +100,9 @@ fun PhoneBoostApp(settingsViewModel: SettingsViewModel, homeViewModel: HomeViewM
             NavigationBar {
                 Tab.entries.forEach { tab ->
                     val selected = destination?.hierarchy?.any { it.route == tab.route } == true ||
-                        (tab == Tab.HOME && destination?.route in Route.homeChildren)
+                        (tab == Tab.HOME && destination?.route in Route.homeChildren) ||
+                        (tab == Tab.REPORT && destination?.route == Route.HISTORY) ||
+                        (tab == Tab.SETTINGS && destination?.route == Route.AUTOMATION)
                     NavigationBarItem(
                         selected = selected,
                         onClick = {
@@ -149,10 +155,20 @@ fun PhoneBoostApp(settingsViewModel: SettingsViewModel, homeViewModel: HomeViewM
             composable(Route.PRIVACY) { PrivacyScreen(onBack = back) }
             composable(Route.APPS) { AppsScreen(onBack = back) }
             composable(Tab.REPORT.route) {
-                ReportScreen(homeViewModel, onOpenTarget = { navController.openTarget(it) })
+                ReportScreen(
+                    homeViewModel,
+                    onOpenTarget = { navController.openTarget(it) },
+                    onOpenHistory = { navController.navigate(Route.HISTORY) }
+                )
+            }
+            composable(Route.HISTORY) { HistoryScreen(onBack = back) }
+            composable(Route.AUTOMATION) {
+                AutomationScreen(onBack = back, onOpenHistory = { navController.navigate(Route.HISTORY) })
             }
             composable(Tab.SUPPORT.route) { SupportScreen() }
-            composable(Tab.SETTINGS.route) { SettingsScreen(settingsViewModel) }
+            composable(Tab.SETTINGS.route) {
+                SettingsScreen(settingsViewModel, onOpenAutomation = { navController.navigate(Route.AUTOMATION) })
+            }
         }
     }
 }

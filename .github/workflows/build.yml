@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: write   # GitHub Release yaratish/fayl biriktirish uchun
 
 jobs:
   build:
@@ -85,9 +90,13 @@ jobs:
           echo "Website: OK"
 
       - name: Clean + Debug + Release APK + AAB
-        run: ./gradlew clean assembleDebug assembleRelease bundleRelease --no-daemon --stacktrace
+        id: build
+        run: |
+          set -o pipefail
+          ./gradlew clean assembleDebug assembleRelease bundleRelease --no-daemon --stacktrace 2>&1 | tee build.log
 
       - name: Validation
+        id: validate
         run: |
           set -e
           APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
@@ -131,15 +140,89 @@ jobs:
             echo "- $BADGE"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Natija fayllarini tayyorlash (dist/)
+        id: dist
+        run: |
+          set -e
+          mkdir -p dist
+          if [ "${{ steps.signing.outputs.signed }}" = "true" ]; then SUF=""; else SUF="_UNSIGNED"; fi
+          cp app/build/outputs/apk/debug/*.apk dist/PHONEBOOST_DEBUG.apk
+          cp app/build/outputs/apk/release/*.apk "dist/PHONEBOOST_RELEASE${SUF}.apk"
+          cp app/build/outputs/bundle/release/*.aab "dist/PHONEBOOST_RELEASE${SUF}.aab"
+          echo "suffix=$SUF" >> "$GITHUB_OUTPUT"
+          ls -l dist
+
+      - name: BUILD_REPORT.txt
+        if: always()
+        run: |
+          mkdir -p dist
+          {
+            echo "PHONEBOOST BUILD REPORT"
+            echo "========================"
+            echo "Sana (UTC):     $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "Commit:         ${GITHUB_SHA}"
+            echo "Branch/Ref:     ${GITHUB_REF_NAME}"
+            echo "Workflow run:   ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+            echo "Job natijasi:   ${{ job.status }}"
+            echo "Gradle build:   ${{ steps.build.outcome }}"
+            echo "Validation:     ${{ steps.validate.outcome }}"
+            echo "Fayllar tayyor: ${{ steps.dist.outcome }}"
+            echo "Imzo:           $([ '${{ steps.signing.outputs.signed }}' = 'true' ] && echo 'SIGNED (GitHub Secrets keystore)' || echo 'UNSIGNED (keystore secrets berilmagan; release fayllar telefonga o‘rnatilmaydi)')"
+            echo "Java:           $(java -version 2>&1 | head -1)"
+            echo "Gradle:         $(./gradlew --version 2>/dev/null | grep '^Gradle' || echo n/a)"
+            echo "AGP/Kotlin:     8.7.3 / 2.0.21"
+            echo "versionName:    $(grep -oP 'versionName\s*=\s*\"\K[^\"]+' app/build.gradle.kts | head -1)"
+            echo "versionCode:    $(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts | head -1)"
+            echo "Reklama (release): $([ -n '${{ secrets.PB_ADMOB_APP_ID }}' ] && [ -n '${{ secrets.PB_AD_BANNER_ID }}' ] && [ -n '${{ secrets.PB_AD_INTERSTITIAL_ID }}' ] && [ -n '${{ secrets.PB_AD_REWARDED_ID }}' ] && echo 'YOQILGAN (4 ta AdMob ID berilgan)' || echo 'O‘CHIQ (4 ta haqiqiy AdMob ID to‘liq berilmagan)')"
+            echo
+            echo "Fayllar:"
+            if ls dist/*.apk dist/*.aab >/dev/null 2>&1; then
+              (cd dist && sha256sum *.apk *.aab && ls -l *.apk *.aab)
+            else
+              echo "  (build fayllari yaratilmadi — build.log ga qarang)"
+            fi
+            echo
+            echo "Eslatma: bu hisobot faqat shu workflow ishida haqiqatan bajarilgan qadamlarni ko‘rsatadi."
+            echo "Telefonda qo‘lda sinov (Animation Speed, PDF, bildirishnomalar) bu build bilan TASDIQLANMAGAN."
+          } > dist/BUILD_REPORT.txt
+          cp build.log dist/BUILD_LOG.txt 2>/dev/null || true
+          cat dist/BUILD_REPORT.txt >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PHONEBOOST-build-report-and-log
+          path: |
+            dist/BUILD_REPORT.txt
+            dist/BUILD_LOG.txt
+      - uses: actions/upload-artifact@v4
+        if: steps.dist.outcome == 'success'
         with:
           name: PHONEBOOST-debug-apk
-          path: app/build/outputs/apk/debug/*.apk
+          path: dist/PHONEBOOST_DEBUG.apk
       - uses: actions/upload-artifact@v4
+        if: steps.dist.outcome == 'success'
         with:
           name: PHONEBOOST-release-apk
-          path: app/build/outputs/apk/release/*.apk
+          path: dist/PHONEBOOST_RELEASE*.apk
       - uses: actions/upload-artifact@v4
+        if: steps.dist.outcome == 'success'
         with:
           name: PHONEBOOST-release-aab
-          path: app/build/outputs/bundle/release/*.aab
+          path: dist/PHONEBOOST_RELEASE*.aab
+
+      - name: GitHub Release (push/Run workflow uchun yangi, Release yaratilganda mavjudiga biriktiriladi)
+        if: steps.dist.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          FILES=$(ls dist/*.apk dist/*.aab dist/BUILD_REPORT.txt)
+          if [ "${{ github.event_name }}" = "release" ]; then
+            gh release upload "${{ github.event.release.tag_name }}" $FILES --clobber
+          else
+            TAG="build-${{ github.run_number }}"
+            gh release create "$TAG" $FILES --prerelease \
+              --title "PHONEBOOST build #${{ github.run_number }}" \
+              --notes-file dist/BUILD_REPORT.txt
+          fi

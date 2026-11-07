@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Hech qaysi permission foydalanuvchidan avtomatik so'ralmaydi. Quyidagilar oddiy (install-time) permissionlar. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -7,12 +8,19 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
+    <!-- Faqat foydalanuvchi Avtomatlashtirishda "Ogohlantirishlar"ni yoqqandagina so'raladi (Android 13+). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Faqat Storage sahifasida, foydalanuvchi "Katta fayllarni topish" tugmasini bosganda so'raladi. -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+
+    <!-- Animatsiya tezligi (Speed): oddiy ilova bu ruxsatni o'zi ola olmaydi. Foydalanuvchi ADB orqali bergandagina ishlaydi: adb shell pm grant uz.phoneboost.app android.permission.WRITE_SECURE_SETTINGS -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <queries>
         <!-- Ilovalar ro'yxati (QUERY_ALL_PACKAGES kerak emas): faqat launcher'da ko'rinadigan ilovalar. -->
@@ -50,6 +58,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"

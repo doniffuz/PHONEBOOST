@@ -1,6 +1,17 @@
 package uz.phoneboost.app.features.report
 
 import android.os.Build
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import uz.phoneboost.app.core.ui.PrimaryButton
+import uz.phoneboost.app.core.ui.SecondaryButton
+import uz.phoneboost.app.data.report.PdfReportBuilder
+import uz.phoneboost.app.data.report.ReportFiles
 import android.text.format.Formatter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -52,13 +63,36 @@ import java.util.Date
 import java.util.Locale
 
 @Composable
-fun ReportScreen(viewModel: HomeViewModel, onOpenTarget: (AppTarget) -> Unit = {}) {
+fun ReportScreen(
+    viewModel: HomeViewModel,
+    onOpenTarget: (AppTarget) -> Unit = {},
+    onOpenHistory: () -> Unit = {}
+) {
     LaunchedEffect(Unit) { viewModel.refresh() }
 
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val unknown = stringResource(R.string.unknown)
     val status = state.status
+    val scope = rememberCoroutineScope()
+    val savedMsg = stringResource(R.string.rep_saved)
+    val failedMsg = stringResource(R.string.rep_failed)
+    val shareTitle = stringResource(R.string.rep_share_title)
+    val saveLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/pdf")
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val ok = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val bytes = PdfReportBuilder.build(context, state)
+                        context.contentResolver.openOutputStream(uri)?.use { it.write(bytes) } != null
+                    }.getOrDefault(false)
+                }
+                Toast.makeText(context, if (ok) savedMsg else failedMsg, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     fun bytes(value: Long?): String =
         if (value == null) unknown else Formatter.formatShortFileSize(context, value)
@@ -228,6 +262,27 @@ fun ReportScreen(viewModel: HomeViewModel, onOpenTarget: (AppTarget) -> Unit = {
             } else {
                 state.recommendations.forEach { RecommendationCard(it, onOpenTarget = onOpenTarget) }
             }
+            Spacer(Modifier.height(8.dp))
+            val canExport = state.status != null
+            PrimaryButton(
+                stringResource(R.string.rep_save_pdf),
+                enabled = canExport,
+                onClick = { saveLauncher.launch(ReportFiles.FILE_NAME) }
+            )
+            SecondaryButton(
+                stringResource(R.string.rep_share),
+                enabled = canExport,
+                onClick = {
+                    scope.launch {
+                        val file = withContext(Dispatchers.IO) {
+                            runCatching { ReportFiles.writeToCache(context, PdfReportBuilder.build(context, state)) }.getOrNull()
+                        }
+                        val ok = file != null && ReportFiles.share(context, file, shareTitle)
+                        if (!ok) Toast.makeText(context, failedMsg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
+            SecondaryButton(stringResource(R.string.hist_open), onClick = onOpenHistory)
             Spacer(Modifier.height(8.dp))
             BannerAd()
         }

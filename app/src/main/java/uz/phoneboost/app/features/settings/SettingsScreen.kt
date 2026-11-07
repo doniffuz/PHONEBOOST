@@ -63,7 +63,7 @@ private val themes = listOf(
 )
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel) {
+fun SettingsScreen(viewModel: SettingsViewModel, onOpenAutomation: () -> Unit = {}) {
     val mode by viewModel.themeMode.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lang = LocalConfiguration.current.locales.get(0).language
@@ -140,6 +140,7 @@ fun SettingsScreen(viewModel: SettingsViewModel) {
                 shadowElevation = 2.dp
             ) {
                 Column(Modifier.fillMaxWidth()) {
+                    SettingsRow(R.string.auto_title, R.string.settings_automation_hint) { onOpenAutomation() }
                     SettingsRow(R.string.settings_notifications, R.string.settings_notifications_hint) {
                         if (!context.openOwnNotificationSettings()) {
                             Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()

@@ -1,6 +1,11 @@
 # PHONEBOOST
 Clean • Optimize • Boost
 
+## GitHub Actions orqali build (asosiy usul)
+`main` ga push, "Run workflow" yoki Release yaratilganda `.github/workflows/build.yml` ishlaydi va Artifacts / Release ga yuklaydi:
+`PHONEBOOST_DEBUG.apk` (telefonga o'rnatiladi), `PHONEBOOST_RELEASE[_UNSIGNED].apk/.aab`, `BUILD_REPORT.txt`, `BUILD_LOG.txt`.
+Keystore Secrets berilmasa release fayllar nomida `_UNSIGNED` bo'ladi va telefonga o'rnatilmaydi (faqat Debug APK o'rnatiladi).
+
 ## Termux'da build
 ```
 pkg install openjdk-17 gradle aapt2
@@ -39,3 +44,9 @@ Kalit yaratish: `keytool -genkeypair -v -keystore release.jks -alias phoneboost 
 **Secrets:** `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` (imzo); ixtiyoriy `PB_ADMOB_APP_ID`, `PB_AD_BANNER_ID`, `PB_AD_INTERSTITIAL_ID`, `PB_AD_REWARDED_ID` (to'rttasi birga berilmasa reklama release'da o'chiq).
 **Variables:** `PB_SUPPORT_URL` (sayt URL), `PB_PRIVACY_POLICY_URL` (sayt URL + `#privacy`).
 Reklama yoqilganda Google UMP consent oynasi har ishga tushganda yangilanadi; AdMob konsolida GDPR xabarini (Privacy & messaging) sozlash kerak.
+
+## Animatsiya tezligi (Speed) va WRITE_SECURE_SETTINGS
+Uchala animatsiya qiymatini (Window/Transition/Animator) 0x–2x ga o'zgartirish uchun ilovaga maxsus ruxsat kerak. Oddiy ilova uni o'zi ololmaydi; foydalanuvchi bir marta ADB orqali beradi:
+`adb shell pm grant uz.phoneboost.app android.permission.WRITE_SECURE_SETTINGS`
+Ruxsat yo'q bo'lsa tugmalar o'chiq turadi va hech narsa o'zgarmaydi. Asl qiymatlar saqlanadi, "Avvalgi qiymatlarni qaytarish" bilan tiklanadi.
+Google Play: bu ruxsatni e'lon qilish siyosat bo'yicha ko'rib chiqilishi mumkin. Rad etilsa, manifestdan olib tashlansa, ilova Developer options yo'riqnomasiga qaytadi.

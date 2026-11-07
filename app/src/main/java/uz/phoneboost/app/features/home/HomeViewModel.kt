@@ -3,13 +3,17 @@ package uz.phoneboost.app.features.home
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import uz.phoneboost.app.data.device.DeviceStatusRepository
+import uz.phoneboost.app.data.history.HistoryEntry
+import uz.phoneboost.app.data.history.HistoryRepository
 import uz.phoneboost.app.domain.HealthResult
 import uz.phoneboost.app.domain.HealthScoreCalculator
 import uz.phoneboost.app.domain.Recommendation
@@ -40,6 +44,7 @@ data class HomeUiState(
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = DeviceStatusRepository(application.applicationContext)
+    private val history = HistoryRepository(application.applicationContext)
 
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -68,6 +73,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 _state.update { it.copy(scanStep = index + 1) }
             }
             delay(250)
+            // Natija tarixga saqlanadi (faqat shu telefonda).
+            val score = HealthScoreCalculator.calculate(status).score
+            withContext(Dispatchers.IO) { runCatching { history.add(HistoryEntry.from(status, score, HistoryEntry.SOURCE_MANUAL)) } }
             _state.update { it.withStatus(status).copy(scanning = false, showResults = true, scanCount = it.scanCount + 1) }
         }
     }

@@ -36,8 +36,8 @@ android {
         applicationId = "uz.phoneboost.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 3
-        versionName = "0.3.0"
+        versionCode = 4
+        versionName = "0.4.0"
 
         // Loyiha egasi gradle.properties orqali beradi (bo'sh = tugma o'chiq). Kodga yozilmaydi.
         buildConfigField("String", "SUPPORT_URL", "\"${prop("PB_SUPPORT_URL")}\"")
@@ -111,6 +111,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
     implementation("androidx.navigation:navigation-compose:2.8.4")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    // Fon diagnostikasi (Avtomatlashtirish)
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     // Reklama (AdMob). Ilovaning asosiy funksiyalari reklamaga bog'liq emas.
     implementation("com.google.android.gms:play-services-ads:23.6.0")
