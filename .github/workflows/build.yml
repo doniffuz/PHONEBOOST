@@ -1,22 +1,145 @@
-name: Build APK
+name: Build PHONEBOOST
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      ORG_GRADLE_PROJECT_PB_SUPPORT_URL: ${{ vars.PB_SUPPORT_URL }}
+      ORG_GRADLE_PROJECT_PB_PRIVACY_POLICY_URL: ${{ vars.PB_PRIVACY_POLICY_URL }}
+      # Ixtiyoriy: haqiqiy AdMob ID lari (bo'sh bo'lsa release'da reklama o'chiq)
+      ORG_GRADLE_PROJECT_PB_ADMOB_APP_ID: ${{ secrets.PB_ADMOB_APP_ID }}
+      ORG_GRADLE_PROJECT_PB_AD_BANNER_ID: ${{ secrets.PB_AD_BANNER_ID }}
+      ORG_GRADLE_PROJECT_PB_AD_INTERSTITIAL_ID: ${{ secrets.PB_AD_INTERSTITIAL_ID }}
+      ORG_GRADLE_PROJECT_PB_AD_REWARDED_ID: ${{ secrets.PB_AD_REWARDED_ID }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 8.9
-      - run: gradle assembleDebug --no-daemon
+
+      - name: Gradle Wrapper (yo'q bo'lsa yaratiladi)
+        run: |
+          if [ ! -f gradlew ]; then gradle wrapper --gradle-version 8.9; fi
+          chmod +x gradlew
+
+      - name: Keystore (GitHub Secrets)
+        id: signing
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > release.keystore
+            {
+              echo "storeFile=release.keystore"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=$KEY_ALIAS"
+              echo "keyPassword=$KEY_PASSWORD"
+            } > keystore.properties
+            echo "signed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Keystore secrets yo'q — release UNSIGNED chiqadi"
+          fi
+
+      - name: Static checks (secrets, website, manifest)
+        run: |
+          set -e
+          echo "== Forbidden hardcoded secrets =="
+          if grep -rIn --exclude-dir=.git --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.github \
+              -E "BEGIN (RSA |EC )?PRIVATE KEY|AKIA[0-9A-Z]{16}|sk_live_|storePassword[[:space:]]*=[[:space:]]*\"[^\"]+\"|[0-9]{4}[ -][0-9]{4}[ -][0-9]{4}[ -][0-9]{4}" . ; then
+            echo "::error::Mumkin bo'lgan hardcoded secret topildi"; exit 1
+          fi
+          echo "OK"
+          echo "== Manifest =="
+          M=app/src/main/AndroidManifest.xml
+          if grep -q "android.permission.QUERY_ALL_PACKAGES" "$M"; then echo "::error::QUERY_ALL_PACKAGES manifestda bor"; exit 1; fi
+          echo "QUERY_ALL_PACKAGES yo'q: OK"
+          echo "== Website =="
+          for id in home about features screenshots download support donation top10 contact privacy terms; do
+            grep -q "id=\"$id\"" website/index.html || { echo "::error::website bo'limi yo'q: $id"; exit 1; }
+          done
+          for f in website/app.js website/i18n.js website/config.js; do node --check "$f"; done
+          test -f website/404.html && test -f website/favicon.svg
+          if grep -rn "http://" website --include=*.html --include=*.js --include=*.css; then echo "::error::website'da http:// havola bor"; exit 1; fi
+          node -e "
+            global.window={};require('./website/config.js');require('./website/i18n.js');
+            const C=window.PB_CONFIG,D=window.PB_I18N;
+            for(const k of ['DOWNLOAD_URL','DONATION_API']) if(C[k] && !/^https:\/\//.test(C[k])) throw new Error(k+' https bo\'lishi kerak');
+            const keys=Object.keys(D.uz);
+            for(const l of ['ru','en']) for(const k of keys) if(!(k in D[l])) throw new Error(l+' tarjimasi yo\'q: '+k);
+          "
+          grep -q "pages" .github/workflows/website.yml
+          echo "Website: OK"
+
+      - name: Clean + Debug + Release APK + AAB
+        run: ./gradlew clean assembleDebug assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Validation
+        run: |
+          set -e
+          APK=$(ls app/build/outputs/apk/release/*.apk | head -1)
+          AAB=$(ls app/build/outputs/bundle/release/*.aab | head -1)
+          DBG=$(ls app/build/outputs/apk/debug/*.apk | head -1)
+          echo "DEBUG APK:   $DBG"; echo "RELEASE APK: $APK"; echo "RELEASE AAB: $AAB"
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          BADGE=$("$BT/aapt" dump badging "$APK" | grep "^package:")
+          echo "$BADGE"
+          WANT_CODE=$(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts | head -1)
+          WANT_NAME=$(grep -oP 'versionName\s*=\s*"\K[^"]+' app/build.gradle.kts | head -1)
+          echo "$BADGE" | grep -q "name='uz.phoneboost.app'" || { echo "::error::applicationId noto'g'ri"; exit 1; }
+          echo "$BADGE" | grep -q "versionCode='$WANT_CODE'" || { echo "::error::versionCode mos emas"; exit 1; }
+          echo "$BADGE" | grep -q "versionName='$WANT_NAME'" || { echo "::error::versionName mos emas"; exit 1; }
+          PERMS=$("$BT/aapt" dump permissions "$APK"); echo "$PERMS"
+          if echo "$PERMS" | grep -q QUERY_ALL_PACKAGES; then echo "::error::QUERY_ALL_PACKAGES release'da bor"; exit 1; fi
+          SIGN="UNSIGNED"
+          if [ "${{ steps.signing.outputs.signed }}" = "true" ]; then
+            "$BT/apksigner" verify --verbose "$APK"
+            jarsigner -verify "$AAB" | head -3
+            SIGN="SIGNED"
+          else
+            echo "::warning::SIGNING: UNSIGNED (keystore secrets yo'q)"
+          fi
+          mkdir -p /tmp/apkx && unzip -oq "$APK" -d /tmp/apkx
+          if grep -rl "3940256099942544/" /tmp/apkx --include='*.dex' >/dev/null 2>&1; then
+            echo "::error::Release ichida Google test ad unit ID topildi"; exit 1
+          fi
+          echo "Test ad unit ID release'da yo'q: OK"
+          if "$BT/aapt" dump xmltree "$APK" AndroidManifest.xml | grep -q "3940256099942544"; then
+            if [ -n "$ORG_GRADLE_PROJECT_PB_ADMOB_APP_ID" ]; then
+              echo "::error::Haqiqiy AdMob ID berilgan, lekin manifestda test App ID bor"; exit 1
+            fi
+            echo "::warning::AdMob ID berilmagan: manifestda SDK uchun majburiy test App ID placeholder bor, reklama kodda O'CHIQ (ADS_ENABLED=false)"
+          fi
+          {
+            echo "## PHONEBOOST build"
+            echo "- Debug APK: $(basename "$DBG")"
+            echo "- Release APK: $(basename "$APK") — **$SIGN**"
+            echo "- Release AAB: $(basename "$AAB") — **$SIGN**"
+            echo "- $BADGE"
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/upload-artifact@v4
         with:
           name: PHONEBOOST-debug-apk
           path: app/build/outputs/apk/debug/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PHONEBOOST-release-apk
+          path: app/build/outputs/apk/release/*.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PHONEBOOST-release-aab
+          path: app/build/outputs/bundle/release/*.aab

@@ -1,0 +1,36 @@
+:root{--bg:#f6f8fb;--surface:#fff;--surface2:#eef2f8;--text:#14202e;--muted:#566377;--primary:#1F6FEB;--on-primary:#fff;--border:#d9e1ec;--ok:#1a7f4b;--warn:#a15c00;--radius:16px}
+@media(prefers-color-scheme:dark){:root{--bg:#10151c;--surface:#18202a;--surface2:#202a36;--text:#e6ecf4;--muted:#a3afc0;--primary:#6aa3ff;--on-primary:#06193a;--border:#2b3746;--ok:#5fd394;--warn:#f0b35a}}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:120px}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{width:min(1080px,100% - 32px);margin-inline:auto}
+header{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border)}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;color:var(--text);text-decoration:none}
+.logo img{width:32px;height:32px}
+nav{display:flex;gap:4px;overflow-x:auto;padding:0 0 8px;scrollbar-width:thin}
+nav a{white-space:nowrap;padding:8px 12px;border-radius:999px;color:var(--muted);text-decoration:none;font-size:14px;min-height:40px;display:inline-flex;align-items:center}
+nav a:hover,nav a:focus-visible{background:var(--surface2);color:var(--text)}
+.lang{display:flex;gap:4px}.lang button{border:1px solid var(--border);background:var(--surface);color:var(--text);border-radius:999px;padding:6px 12px;min-height:36px;cursor:pointer;font:inherit;font-size:14px}
+.lang button[aria-pressed=true]{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+section{padding:56px 0}section+section{border-top:1px solid var(--border)}
+h1{font-size:clamp(2rem,5vw,3.2rem);line-height:1.15;margin:0 0 16px}h2{font-size:clamp(1.5rem,3vw,2rem);margin:0 0 12px}h3{font-size:1.05rem;margin:0 0 6px}
+.muted{color:var(--muted)}.lead{font-size:1.15rem;color:var(--muted);max-width:60ch}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 24px;border-radius:999px;border:1px solid var(--primary);background:var(--primary);color:var(--on-primary);font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.btn.secondary{background:transparent;color:var(--primary)}
+.btn[disabled],.btn[aria-disabled=true]{opacity:.5;cursor:not-allowed}
+.btn:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.hero{padding:72px 0 56px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.shots{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:24px}
+.shot{aspect-ratio:9/19;border:2px dashed var(--border);border-radius:24px;display:grid;place-items:center;text-align:center;padding:12px;color:var(--muted);font-size:14px;background:var(--surface)}
+.amounts{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.amounts button{min-height:48px;padding:0 18px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);font:inherit;cursor:pointer}
+.amounts button[aria-pressed=true]{border-color:var(--primary);background:var(--surface2);font-weight:700}
+label{display:block;margin:12px 0 4px;font-weight:600}input[type=text],input[type=number]{width:100%;max-width:360px;min-height:48px;border-radius:12px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:0 14px;font:inherit}
+.check{display:flex;gap:10px;align-items:center;margin-top:12px}.check input{width:20px;height:20px}.check label{margin:0;font-weight:400}
+.status{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--surface2)}.status.warn{color:var(--warn)}.status.ok{color:var(--ok)}
+ol.top{list-style:none;padding:0;margin:16px 0 0}ol.top li{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.doc h3{margin-top:20px}.doc ul{padding-left:20px}
+footer{padding:32px 0;border-top:1px solid var(--border);color:var(--muted);font-size:14px}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
