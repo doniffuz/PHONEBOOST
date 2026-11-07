@@ -1,0 +1,5 @@
+project_id = "bmyvvwyfgswjgktlsqlu"
+
+# Funksiya o'z autentifikatsiyasini qiladi (admin tokeni); ochiq endpointlar (update, donation-config) JWT talab qilmaydi.
+[functions.api]
+verify_jwt = false

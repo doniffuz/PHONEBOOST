@@ -1,8 +1,5 @@
 package uz.phoneboost.app.features.history
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -16,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import uz.phoneboost.app.R
+import uz.phoneboost.app.core.designsystem.PhoneBoostDialog
 import uz.phoneboost.app.core.ui.FeaturePage
 import uz.phoneboost.app.core.ui.InfoRow
 import uz.phoneboost.app.core.ui.NoteText
@@ -48,6 +46,8 @@ fun HistoryScreen(onBack: () -> Unit) {
             val date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())
                 .format(Date(e.timeMillis))
             SectionCard(date) {
+                InfoRow(stringResource(R.string.hist_type), stringResource(typeLabel(e.type)))
+                e.result?.let { InfoRow(stringResource(R.string.hist_result), it) }
                 InfoRow(
                     stringResource(R.string.hist_score),
                     e.score?.let { "$it/100" } ?: unknown
@@ -73,22 +73,28 @@ fun HistoryScreen(onBack: () -> Unit) {
     }
 
     if (askClear) {
-        AlertDialog(
-            onDismissRequest = { askClear = false },
-            title = { Text(stringResource(R.string.hist_clear_title)) },
-            text = { Text(stringResource(R.string.hist_clear_text)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    askClear = false
-                    scope.launch {
-                        withContext(Dispatchers.IO) { repo.clear() }
-                        entries = emptyList()
-                    }
-                }) { Text(stringResource(R.string.hist_clear_yes)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { askClear = false }) { Text(stringResource(R.string.hist_cancel)) }
+        PhoneBoostDialog(
+            title = stringResource(R.string.hist_clear_title),
+            text = stringResource(R.string.hist_clear_text),
+            confirmText = stringResource(R.string.hist_clear_yes),
+            dismissText = stringResource(R.string.hist_cancel),
+            onDismiss = { askClear = false },
+            onConfirm = {
+                askClear = false
+                scope.launch {
+                    withContext(Dispatchers.IO) { repo.clear() }
+                    entries = emptyList()
+                }
             }
         )
     }
+}
+
+private fun typeLabel(type: String): Int = when (type) {
+    HistoryEntry.TYPE_OPTIMIZATION -> R.string.hist_type_opt
+    HistoryEntry.TYPE_GAME_BOOST -> R.string.hist_type_game
+    HistoryEntry.TYPE_BATTERY -> R.string.hist_type_battery
+    HistoryEntry.TYPE_CLEANUP -> R.string.hist_type_cleanup
+    HistoryEntry.TYPE_SMART -> R.string.hist_type_smart
+    else -> R.string.hist_type_diag
 }

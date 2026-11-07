@@ -42,6 +42,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import uz.phoneboost.app.R
 import uz.phoneboost.app.core.designsystem.BrandColors
+import uz.phoneboost.app.core.designsystem.PhoneBoostButton
+import uz.phoneboost.app.core.designsystem.PhoneBoostSecondaryButton
+import uz.phoneboost.app.core.designsystem.PhoneBoostTopBar
 import uz.phoneboost.app.domain.DiagStatus
 
 fun Context.findActivity(): Activity? {
@@ -101,19 +104,7 @@ fun FeaturePage(
 
 @Composable
 fun PageHeader(@StringRes title: Int, onBack: () -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        IconButton(onClick = onBack, modifier = Modifier.heightIn(min = 48.dp)) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.back)
-            )
-        }
-        Text(
-            stringResource(title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-    }
+    PhoneBoostTopBar(stringResource(title), onBack)
 }
 
 @Composable
@@ -122,28 +113,12 @@ fun NoteText(text: String, modifier: Modifier = Modifier, color: Color = Materia
 }
 
 @Composable
-fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    Button(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.fillMaxWidth().heightIn(min = 52.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Text(text, fontWeight = FontWeight.Bold)
-    }
-}
+fun PrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) =
+    PhoneBoostButton(text, onClick, modifier, enabled)
 
 @Composable
-fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
-    OutlinedButton(
-        onClick = onClick,
-        enabled = enabled,
-        modifier = modifier.fillMaxWidth().heightIn(min = 52.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Text(text, fontWeight = FontWeight.SemiBold)
-    }
-}
+fun SecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) =
+    PhoneBoostSecondaryButton(text, onClick, modifier, enabled)
 
 @Composable
 fun diagStatusText(status: DiagStatus): String = stringResource(

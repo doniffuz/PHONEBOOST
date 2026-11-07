@@ -19,15 +19,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import uz.phoneboost.app.core.ui.findActivity
-import uz.phoneboost.app.ads.Ads
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +44,7 @@ import uz.phoneboost.app.core.AppConfig
 import uz.phoneboost.app.core.util.openEmail
 import uz.phoneboost.app.core.util.openOwnNotificationSettings
 import uz.phoneboost.app.core.util.openRateApp
+import uz.phoneboost.app.core.designsystem.PhoneBoostDialog
 import uz.phoneboost.app.core.util.openUrl
 import uz.phoneboost.app.data.settings.ThemeMode
 
@@ -63,7 +61,12 @@ private val themes = listOf(
 )
 
 @Composable
-fun SettingsScreen(viewModel: SettingsViewModel, onOpenAutomation: () -> Unit = {}) {
+fun SettingsScreen(
+    viewModel: SettingsViewModel,
+    onOpenAutomation: () -> Unit = {},
+    onOpenUpdate: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}
+) {
     val mode by viewModel.themeMode.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lang = LocalConfiguration.current.locales.get(0).language
@@ -147,11 +150,8 @@ fun SettingsScreen(viewModel: SettingsViewModel, onOpenAutomation: () -> Unit = 
                         }
                     }
                     SettingsRow(R.string.settings_privacy, R.string.settings_privacy_hint) { showPrivacy = true }
-                    if (Ads.privacyOptionsRequired.value) {
-                        SettingsRow(R.string.settings_ads_privacy, R.string.settings_ads_privacy_hint) {
-                            context.findActivity()?.let { Ads.showPrivacyOptions(it) }
-                        }
-                    }
+                    SettingsRow(R.string.settings_update, R.string.settings_update_hint) { onOpenUpdate() }
+                    SettingsRow(R.string.settings_admin, R.string.settings_admin_hint) { onOpenAdmin() }
                     SettingsRow(R.string.settings_rate, R.string.settings_rate_hint) {
                         if (!context.openRateApp()) {
                             Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
@@ -193,26 +193,22 @@ fun SettingsScreen(viewModel: SettingsViewModel, onOpenAutomation: () -> Unit = 
     }
 
     if (showPrivacy) {
-        AlertDialog(
-            onDismissRequest = { showPrivacy = false },
-            title = { Text(stringResource(R.string.settings_privacy)) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Text(stringResource(R.string.privacy_policy_text))
+        val hasFull = AppConfig.PRIVACY_POLICY_URL.isNotBlank()
+        PhoneBoostDialog(
+            title = stringResource(R.string.settings_privacy),
+            text = stringResource(R.string.privacy_policy_text),
+            confirmText = stringResource(if (hasFull) R.string.privacy_full_policy else R.string.close),
+            dismissText = if (hasFull) stringResource(R.string.close) else null,
+            onConfirm = {
+                if (hasFull) {
+                    if (!context.openUrl(AppConfig.PRIVACY_POLICY_URL)) {
+                        Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    showPrivacy = false
                 }
             },
-            confirmButton = {
-                if (AppConfig.PRIVACY_POLICY_URL.isNotBlank()) {
-                    TextButton(onClick = {
-                        if (!context.openUrl(AppConfig.PRIVACY_POLICY_URL)) {
-                            Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
-                        }
-                    }) { Text(stringResource(R.string.privacy_full_policy)) }
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPrivacy = false }) { Text(stringResource(R.string.close)) }
-            }
+            onDismiss = { showPrivacy = false }
         )
     }
 }

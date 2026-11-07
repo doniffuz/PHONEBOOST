@@ -75,8 +75,13 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             delay(250)
             // Natija tarixga saqlanadi (faqat shu telefonda).
             val score = HealthScoreCalculator.calculate(status)?.score
-            withContext(Dispatchers.IO) { runCatching { history.add(HistoryEntry.from(status, score, HistoryEntry.SOURCE_MANUAL)) } }
+            withContext(Dispatchers.IO) { runCatching { history.add(HistoryEntry.from(status, score, HistoryEntry.SOURCE_MANUAL, HistoryEntry.TYPE_OPTIMIZATION, scanResultText(status))) } }
             _state.update { it.withStatus(status).copy(scanning = false, showResults = true, scanCount = it.scanCount + 1) }
         }
     }
+}
+
+private fun scanResultText(status: DeviceStatus): String {
+    val n = RecommendationEngine.analyze(status).size
+    return "recommendations=$n"
 }

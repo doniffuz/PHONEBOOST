@@ -38,6 +38,7 @@ class AutomationWorker(context: Context, params: WorkerParameters) : CoroutineWo
             val battery = status.batteryPercent
             if (temp != null && temp >= 42f) alert(prefs, "temp", 1001, R.string.auto_notif_temp_title, R.string.auto_notif_temp_text)
             if (storage != null && storage < 0.10f) alert(prefs, "storage", 1002, R.string.auto_notif_storage_title, R.string.auto_notif_storage_text)
+            if (battery != null && battery < 15 && status.isCharging != true) HistoryRepository(ctx).add(HistoryEntry.from(status, score, HistoryEntry.SOURCE_AUTO, HistoryEntry.TYPE_BATTERY, "low_battery=$battery%"))
             if (battery != null && battery < 15 && status.isCharging != true) alert(prefs, "battery", 1003, R.string.auto_notif_battery_title, R.string.auto_notif_battery_text)
         }
         return Result.success()

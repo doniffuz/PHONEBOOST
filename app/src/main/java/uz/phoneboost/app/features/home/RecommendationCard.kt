@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
+import uz.phoneboost.app.core.designsystem.PhoneBoostButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -93,18 +93,13 @@ fun RecommendationCard(
                 color = MaterialTheme.colorScheme.onSurface
             )
             if (type.target != AppTarget.NONE) {
-                Button(
+                PhoneBoostButton(
+                    text = stringResource(
+                        if (type.target == AppTarget.STORAGE) R.string.action_open_storage else R.string.action_open_battery
+                    ),
                     onClick = { onOpenTarget(type.target) },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(
-                        stringResource(
-                            if (type.target == AppTarget.STORAGE) R.string.action_open_storage else R.string.action_open_battery
-                        ),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
             if (type.action != SettingsAction.NONE) {
                 Text(
@@ -112,17 +107,15 @@ fun RecommendationCard(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Button(
+                PhoneBoostButton(
+                    text = stringResource(R.string.action_open_settings),
                     onClick = {
                         if (!context.openSettings(type.action)) {
                             Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
                         }
                     },
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Text(stringResource(R.string.action_open_settings), fontWeight = FontWeight.Bold)
-                }
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }

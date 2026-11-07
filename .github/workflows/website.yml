@@ -19,6 +19,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Pages sozlamasini tekshirish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
+            echo "GitHub Pages yoqilgan."
+          else
+            echo "::warning::GitHub Pages sozlanmagan bo'lishi mumkin. Repo Settings > Pages > Source: GitHub Actions ni tanlang, so'ng workflow'ni qayta ishga tushiring."
+          fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

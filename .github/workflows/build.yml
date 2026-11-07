@@ -15,11 +15,10 @@ jobs:
     env:
       ORG_GRADLE_PROJECT_PB_SUPPORT_URL: ${{ vars.PB_SUPPORT_URL }}
       ORG_GRADLE_PROJECT_PB_PRIVACY_POLICY_URL: ${{ vars.PB_PRIVACY_POLICY_URL }}
-      # Ixtiyoriy: haqiqiy AdMob ID lari (bo'sh bo'lsa release'da reklama o'chiq)
-      ORG_GRADLE_PROJECT_PB_ADMOB_APP_ID: ${{ secrets.PB_ADMOB_APP_ID }}
-      ORG_GRADLE_PROJECT_PB_AD_BANNER_ID: ${{ secrets.PB_AD_BANNER_ID }}
-      ORG_GRADLE_PROJECT_PB_AD_INTERSTITIAL_ID: ${{ secrets.PB_AD_INTERSTITIAL_ID }}
-      ORG_GRADLE_PROJECT_PB_AD_REWARDED_ID: ${{ secrets.PB_AD_REWARDED_ID }}
+      ORG_GRADLE_PROJECT_PB_DONATION_URL: ${{ vars.PB_DONATION_URL }}
+      ORG_GRADLE_PROJECT_PB_DONATION_CONFIG_URL: ${{ vars.PB_DONATION_CONFIG_URL || 'https://bmyvvwyfgswjgktlsqlu.supabase.co/functions/v1/api/donation-config' }}
+      ORG_GRADLE_PROJECT_PB_UPDATE_URL: ${{ vars.PB_UPDATE_URL || 'https://bmyvvwyfgswjgktlsqlu.supabase.co/functions/v1/api/update' }}
+      ORG_GRADLE_PROJECT_PB_ADMIN_API_URL: ${{ vars.PB_ADMIN_API_URL || 'https://bmyvvwyfgswjgktlsqlu.supabase.co/functions/v1/api' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -68,6 +67,16 @@ jobs:
             echo "::error::Mumkin bo'lgan hardcoded secret topildi"; exit 1
           fi
           echo "OK"
+          echo "== Backend secrets (service_role / DB parol / JWT) =="
+          if grep -rIn --exclude-dir=.git --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.github \
+              -E "eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.|sb_secret_[A-Za-z0-9_-]+|postgres(ql)?://[^ \"']+:[^ \"'@]+@" . ; then
+            echo "::error::Repo ichida service_role/JWT/DB parol topildi"; exit 1
+          fi
+          if grep -rIn --include=*.kt --include=*.kts --include=*.xml --include=*.js --include=*.html app website | grep -iE "service_role|SERVICE_ROLE_KEY"; then
+            echo "::error::Client kodida service_role ga ishora bor"; exit 1
+          fi
+          grep -rIn "https://" app/build.gradle.kts >/dev/null || true
+          echo "OK"
           echo "== Manifest =="
           M=app/src/main/AndroidManifest.xml
           if grep -q "android.permission.QUERY_ALL_PACKAGES" "$M"; then echo "::error::QUERY_ALL_PACKAGES manifestda bor"; exit 1; fi
@@ -88,6 +97,27 @@ jobs:
           "
           grep -q "pages" .github/workflows/website.yml
           echo "Website: OK"
+          echo "== Resources (XML + tillar paritetsi) =="
+          for f in $(find app/src/main/res app/src/main/AndroidManifest.xml -name '*.xml'); do xmllint --noout "$f" || { echo "::error::XML xato: $f"; exit 1; }; done
+          python3 - <<'PY'
+          import xml.etree.ElementTree as ET, sys
+          def keys(p): return {e.get('name') for e in ET.parse(p).getroot()}
+          base = keys('app/src/main/res/values/strings.xml')
+          bad = False
+          for l in ('ru', 'en'):
+              miss = base - keys(f'app/src/main/res/values-{l}/strings.xml')
+              if miss:
+                  print('::error::values-%s da tarjima yo\'q: %s' % (l, sorted(miss))); bad = True
+          sys.exit(1 if bad else 0)
+          PY
+          echo "Resources: OK"
+
+      - name: Lint + Unit tests
+        id: checks
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          ./gradlew lintDebug testDebugUnitTest --no-daemon --stacktrace 2>&1 | tee checks.log
 
       - name: Clean + Debug + Release APK + AAB
         id: build
@@ -113,25 +143,23 @@ jobs:
           echo "$BADGE" | grep -q "versionName='$WANT_NAME'" || { echo "::error::versionName mos emas"; exit 1; }
           PERMS=$("$BT/aapt" dump permissions "$APK"); echo "$PERMS"
           if echo "$PERMS" | grep -q QUERY_ALL_PACKAGES; then echo "::error::QUERY_ALL_PACKAGES release'da bor"; exit 1; fi
-          SIGN="UNSIGNED"
+          SIGN="NOT CONFIGURED"
           if [ "${{ steps.signing.outputs.signed }}" = "true" ]; then
             "$BT/apksigner" verify --verbose "$APK"
             jarsigner -verify "$AAB" | head -3
             SIGN="SIGNED"
           else
-            echo "::warning::SIGNING: UNSIGNED (keystore secrets yo'q)"
+            echo "::warning::SIGNING: NOT CONFIGURED (keystore secrets yo'q)"
           fi
           mkdir -p /tmp/apkx && unzip -oq "$APK" -d /tmp/apkx
-          if grep -rl "3940256099942544/" /tmp/apkx --include='*.dex' >/dev/null 2>&1; then
-            echo "::error::Release ichida Google test ad unit ID topildi"; exit 1
+          if grep -rl "com.google.android.gms.ads" /tmp/apkx --include='*.dex' >/dev/null 2>&1; then
+            echo "::error::Release ichida reklama SDK topildi"; exit 1
           fi
-          echo "Test ad unit ID release'da yo'q: OK"
-          if "$BT/aapt" dump xmltree "$APK" AndroidManifest.xml | grep -q "3940256099942544"; then
-            if [ -n "$ORG_GRADLE_PROJECT_PB_ADMOB_APP_ID" ]; then
-              echo "::error::Haqiqiy AdMob ID berilgan, lekin manifestda test App ID bor"; exit 1
-            fi
-            echo "::warning::AdMob ID berilmagan: manifestda SDK uchun majburiy test App ID placeholder bor, reklama kodda O'CHIQ (ADS_ENABLED=false)"
+          echo "Reklama SDK release'da yo'q: OK"
+          if grep -rIlaE "service_role|SERVICE_ROLE|sb_secret_|postgres(ql)?://" /tmp/apkx >/dev/null 2>&1; then
+            echo "::error::APK ichida backend secret izi topildi"; exit 1
           fi
+          echo "APK ichida service_role/DB parol yo'q: OK"
           {
             echo "## PHONEBOOST build"
             echo "- Debug APK: $(basename "$DBG")"
@@ -146,9 +174,9 @@ jobs:
           set -e
           mkdir -p dist
           if [ "${{ steps.signing.outputs.signed }}" = "true" ]; then SUF=""; else SUF="_UNSIGNED"; fi
-          cp app/build/outputs/apk/debug/*.apk dist/PHONEBOOST_DEBUG.apk
-          cp app/build/outputs/apk/release/*.apk "dist/PHONEBOOST_RELEASE${SUF}.apk"
-          cp app/build/outputs/bundle/release/*.aab "dist/PHONEBOOST_RELEASE${SUF}.aab"
+          cp app/build/outputs/apk/debug/*.apk dist/PHONEBOOST-debug.apk
+          cp app/build/outputs/apk/release/*.apk "dist/PHONEBOOST-release${SUF}.apk"
+          cp app/build/outputs/bundle/release/*.aab "dist/PHONEBOOST-release${SUF}.aab"
           echo "suffix=$SUF" >> "$GITHUB_OUTPUT"
           ls -l dist
 
@@ -166,14 +194,15 @@ jobs:
             echo "Job natijasi:   ${{ job.status }}"
             echo "Gradle build:   ${{ steps.build.outcome }}"
             echo "Validation:     ${{ steps.validate.outcome }}"
+            echo "Lint + Tests:   ${{ steps.checks.outcome }} (lintDebug, testDebugUnitTest)"
+            echo "Package ID:     uz.phoneboost.app"
             echo "Fayllar tayyor: ${{ steps.dist.outcome }}"
-            echo "Imzo:           $([ '${{ steps.signing.outputs.signed }}' = 'true' ] && echo 'SIGNED (GitHub Secrets keystore)' || echo 'UNSIGNED (keystore secrets berilmagan; release fayllar telefonga o‘rnatilmaydi)')"
+            echo "Imzo:           $([ '${{ steps.signing.outputs.signed }}' = 'true' ] && echo 'SIGNED (GitHub Secrets keystore)' || echo 'NOT CONFIGURED (keystore secrets berilmagan; release APK imzosiz)')"
             echo "Java:           $(java -version 2>&1 | head -1)"
             echo "Gradle:         $(./gradlew --version 2>/dev/null | grep '^Gradle' || echo n/a)"
             echo "AGP/Kotlin:     8.7.3 / 2.0.21"
             echo "versionName:    $(grep -oP 'versionName\s*=\s*\"\K[^\"]+' app/build.gradle.kts | head -1)"
             echo "versionCode:    $(grep -oP 'versionCode\s*=\s*\K[0-9]+' app/build.gradle.kts | head -1)"
-            echo "Reklama (release): $([ -n '${{ secrets.PB_ADMOB_APP_ID }}' ] && [ -n '${{ secrets.PB_AD_BANNER_ID }}' ] && [ -n '${{ secrets.PB_AD_INTERSTITIAL_ID }}' ] && [ -n '${{ secrets.PB_AD_REWARDED_ID }}' ] && echo 'YOQILGAN (4 ta AdMob ID berilgan)' || echo 'O‘CHIQ (4 ta haqiqiy AdMob ID to‘liq berilmagan)')"
             echo
             echo "Fayllar:"
             if ls dist/*.apk dist/*.aab >/dev/null 2>&1; then
@@ -188,8 +217,36 @@ jobs:
               grep -A6 'What went wrong' build.log | head -30
             fi
             echo
-            echo "Eslatma: bu hisobot faqat shu workflow ishida haqiqatan bajarilgan qadamlarni ko‘rsatadi."
-            echo "Telefonda qo‘lda sinov (Animation Speed, PDF, bildirishnomalar) bu build bilan TASDIQLANMAGAN."
+            echo "Known limitations: build CI ishidan oldin lokal tasdiqlanmagan; Animation Speed WRITE_SECURE_SETTINGS ni faqat ADB bilan oladi; Admin Panel backend YO'Q (NOT DONE); donation statistikasi backend YO'Q; karta ma'lumoti PB_DONATION_CONFIG_URL (HTTPS) orqali olinadi."
+            echo "Eslatma: bu hisobot faqat shu workflow ishida haqiqatan bajarilgan qadamlarni ko'rsatadi."
+            echo
+            echo "STATUSLAR"
+            echo "---------"
+            if [ "${{ steps.build.outcome }}" = "success" ]; then
+              echo "DONE: Gradle build (clean assembleDebug assembleRelease bundleRelease) shu CI ishida muvaffaqiyatli bajarildi"
+              echo "BUILD STATUS: BUILD SUCCESS (faqat shu CI run, commit ${GITHUB_SHA})"
+            else
+              echo "BUILD STATUS: BUILD FAILED (build.log / yuqoridagi xatolar ro'yxatiga qarang)"
+            fi
+            if [ "${{ steps.checks.outcome }}" = "success" ]; then
+              echo "DONE: lintDebug + testDebugUnitTest o'tdi"
+            else
+              echo "LINT/TESTS: FAILED yoki bajarilmadi (checks.log ga qarang)"
+            fi
+            echo "DEVICE NOT TESTED: haqiqiy telefonda sinov (Animation Speed, PDF, bildirishnoma, Game Boost) bu CI bilan tasdiqlanmagan"
+            if [ -z "${ORG_GRADLE_PROJECT_PB_ADMIN_API_URL}" ]; then
+              echo "BACKEND REQUIRED: PB_ADMIN_API_URL sozlanmagan, Admin Panel 'Backend connection required' ko'rsatadi"
+            else
+              echo "BACKEND: URL'lar berilgan; backend deploy 'Deploy Supabase backend' workflow'i smoke testi bilan tekshiriladi"
+            fi
+            if [ -z "${ORG_GRADLE_PROJECT_PB_UPDATE_URL}" ]; then echo "UPDATE: PB_UPDATE_URL sozlanmagan (ilovada 'Sozlanmagan' ko'rsatiladi)"; fi
+            if [ -z "${ORG_GRADLE_PROJECT_PB_DONATION_CONFIG_URL}" ]; then echo "DONATION: PB_DONATION_CONFIG_URL sozlanmagan (karta ko'rsatilmaydi)"; fi
+            if [ '${{ steps.signing.outputs.signed }}' = 'true' ]; then
+              echo "SIGNING: CONFIGURED (signed release)"
+            else
+              echo "SIGNING: NOT CONFIGURED"
+              echo "SIGNING NOT CONFIGURED: KEYSTORE_BASE64 / KEYSTORE_PASSWORD / KEY_ALIAS / KEY_PASSWORD secrets yo'q"
+            fi
           } > dist/BUILD_REPORT.txt
           cp build.log dist/BUILD_LOG.txt 2>/dev/null || true
           cat dist/BUILD_REPORT.txt >> "$GITHUB_STEP_SUMMARY"
@@ -205,17 +262,17 @@ jobs:
         if: steps.dist.outcome == 'success'
         with:
           name: PHONEBOOST-debug-apk
-          path: dist/PHONEBOOST_DEBUG.apk
+          path: dist/PHONEBOOST-debug.apk
       - uses: actions/upload-artifact@v4
         if: steps.dist.outcome == 'success'
         with:
           name: PHONEBOOST-release-apk
-          path: dist/PHONEBOOST_RELEASE*.apk
+          path: dist/PHONEBOOST-release*.apk
       - uses: actions/upload-artifact@v4
         if: steps.dist.outcome == 'success'
         with:
           name: PHONEBOOST-release-aab
-          path: dist/PHONEBOOST_RELEASE*.aab
+          path: dist/PHONEBOOST-release*.aab
 
       - name: GitHub Release (push/Run workflow uchun yangi, Release yaratilganda mavjudiga biriktiriladi)
         if: steps.dist.outcome == 'success'

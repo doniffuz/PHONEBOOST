@@ -14,20 +14,37 @@ data class HistoryEntry(
     val storageFreePercent: Int?,
     val batteryPercent: Int?,
     val batteryTempC: Float?,
-    val source: String
+    val source: String,
+    val type: String = TYPE_DIAGNOSTICS,
+    val result: String? = null
 ) {
     companion object {
         const val SOURCE_MANUAL = "manual"
         const val SOURCE_AUTO = "auto"
 
-        fun from(status: DeviceStatus, score: Int?, source: String) = HistoryEntry(
+        const val TYPE_DIAGNOSTICS = "diagnostics"
+        const val TYPE_OPTIMIZATION = "optimization"
+        const val TYPE_GAME_BOOST = "game_boost"
+        const val TYPE_BATTERY = "battery"
+        const val TYPE_CLEANUP = "cleanup"
+        const val TYPE_SMART = "smart_optimize"
+
+        fun from(
+            status: DeviceStatus,
+            score: Int?,
+            source: String,
+            type: String = TYPE_DIAGNOSTICS,
+            result: String? = null
+        ) = HistoryEntry(
             timeMillis = System.currentTimeMillis(),
             score = score,
             ramBusyPercent = status.busyRamPercent,
             storageFreePercent = status.freeStorageFraction?.let { (it * 100f).toInt().coerceIn(0, 100) },
             batteryPercent = status.batteryPercent,
             batteryTempC = status.batteryTempC,
-            source = source
+            source = source,
+            type = type,
+            result = result
         )
     }
 }
@@ -60,7 +77,9 @@ class HistoryRepository(context: Context) {
                 storageFreePercent = o.optIntOrNull("f"),
                 batteryPercent = o.optIntOrNull("b"),
                 batteryTempC = if (o.has("c") && !o.isNull("c")) o.optDouble("c").toFloat() else null,
-                source = o.optString("src", HistoryEntry.SOURCE_MANUAL)
+                source = o.optString("src", HistoryEntry.SOURCE_MANUAL),
+                type = o.optString("ty", HistoryEntry.TYPE_DIAGNOSTICS),
+                result = if (o.has("res") && !o.isNull("res")) o.optString("res") else null
             )
         }
     }.getOrDefault(emptyList())
@@ -77,6 +96,8 @@ class HistoryRepository(context: Context) {
                     e.batteryPercent?.let { put("b", it) }
                     e.batteryTempC?.let { put("c", it.toDouble()) }
                     put("src", e.source)
+                    put("ty", e.type)
+                    e.result?.let { put("res", it) }
                 })
             }
             val tmp = File(file.parentFile, "history.json.tmp")

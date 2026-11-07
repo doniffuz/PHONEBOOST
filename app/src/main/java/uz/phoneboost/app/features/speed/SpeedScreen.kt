@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import uz.phoneboost.app.R
 import uz.phoneboost.app.core.designsystem.BrandColors
+import uz.phoneboost.app.core.designsystem.PhoneBoostDialog
 import uz.phoneboost.app.core.ui.FeaturePage
 import uz.phoneboost.app.core.ui.InfoRow
 import uz.phoneboost.app.core.ui.NoteText
@@ -171,21 +170,18 @@ fun SpeedScreen(onBack: () -> Unit) {
 
     val pending = confirm
     if (pending != null) {
-        AlertDialog(
-            onDismissRequest = { confirm = null },
-            title = { Text(stringResource(R.string.speed_confirm_title)) },
-            text = { Text(stringResource(R.string.speed_confirm_text, stringResource(pending.label()))) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirm = null
-                    val ok = AnimationScales.apply(context, pending)
-                    reload()
-                    Toast.makeText(context, if (ok) appliedMsg else failedMsg, Toast.LENGTH_SHORT).show()
-                }) { Text(stringResource(R.string.speed_confirm_yes)) }
+        PhoneBoostDialog(
+            title = stringResource(R.string.speed_confirm_title),
+            text = stringResource(R.string.speed_confirm_text, stringResource(pending.label())),
+            confirmText = stringResource(R.string.speed_confirm_yes),
+            dismissText = stringResource(R.string.speed_cancel),
+            onConfirm = {
+                confirm = null
+                val ok = AnimationScales.apply(context, pending)
+                reload()
+                Toast.makeText(context, if (ok) appliedMsg else failedMsg, Toast.LENGTH_SHORT).show()
             },
-            dismissButton = {
-                TextButton(onClick = { confirm = null }) { Text(stringResource(R.string.speed_cancel)) }
-            }
+            onDismiss = { confirm = null }
         )
     }
 }

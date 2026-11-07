@@ -49,7 +49,6 @@ import uz.phoneboost.app.core.ui.formatTemp
 import uz.phoneboost.app.core.ui.healthColor
 import uz.phoneboost.app.core.ui.healthLabelRes
 import uz.phoneboost.app.core.ui.temperatureStatus
-import uz.phoneboost.app.ads.BannerAd
 import uz.phoneboost.app.core.ui.batteryHealthText
 import uz.phoneboost.app.core.ui.thermalText
 import uz.phoneboost.app.domain.AppTarget
@@ -284,7 +283,6 @@ fun ReportScreen(
             )
             SecondaryButton(stringResource(R.string.hist_open), onClick = onOpenHistory)
             Spacer(Modifier.height(8.dp))
-            BannerAd()
         }
     }
 }

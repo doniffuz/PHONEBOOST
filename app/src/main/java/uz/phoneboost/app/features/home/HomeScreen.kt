@@ -56,20 +56,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uz.phoneboost.app.R
-import uz.phoneboost.app.ads.Ads
 import uz.phoneboost.app.core.ui.OnResume
 import uz.phoneboost.app.core.ui.findActivity
 import uz.phoneboost.app.domain.AppTarget
 import uz.phoneboost.app.core.designsystem.BrandColors
+import uz.phoneboost.app.core.designsystem.PhoneBoostCard
 import uz.phoneboost.app.domain.HealthLevel
 import uz.phoneboost.app.domain.model.DeviceStatus
 import java.util.Locale
 
-enum class FeatureKey { SPEED, GAME, BATTERY, STORAGE, DIAGNOSTICS, PHONE, PRIVACY, APPS }
+enum class FeatureKey { SMART, SPEED, GAME, BATTERY, STORAGE, DIAGNOSTICS, PHONE, PRIVACY, APPS }
 
 private data class Feature(val key: FeatureKey, val emoji: String, @StringRes val title: Int)
 
 private val features = listOf(
+    Feature(FeatureKey.SMART, "✨", R.string.smart_title),
     Feature(FeatureKey.SPEED, "⚡", R.string.feature_speed),
     Feature(FeatureKey.GAME, "🎮", R.string.feature_game),
     Feature(FeatureKey.BATTERY, "🔋", R.string.feature_battery),
@@ -88,10 +89,6 @@ fun HomeScreen(
 ) {
     OnResume { viewModel.refresh() }
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val activity = LocalContext.current.findActivity()
-    LaunchedEffect(state.scanCount) {
-        if (state.scanCount > 0 && activity != null) Ads.onOptimizationCompleted(activity, state.scanCount)
-    }
     val colors = MaterialTheme.colorScheme
 
     Box(
@@ -190,8 +187,8 @@ private fun HealthRing(score: Int?, level: HealthLevel?, scanning: Boolean, ring
         animationSpec = tween(900),
         label = "score"
     )
-    val track = colors.surfaceVariant
-    val brush = Brush.linearGradient(listOf(BrandColors.Blue, BrandColors.Cyan))
+    val track = Color(0xFF13214A)
+    val brush = Brush.linearGradient(listOf(level.color(), BrandColors.Cyan))
 
     Box(Modifier.size(ringSize), contentAlignment = Alignment.Center) {
         Canvas(Modifier.fillMaxSize()) {
@@ -293,7 +290,7 @@ private fun OptimizeButton(scanning: Boolean, onClick: () -> Unit) {
             Modifier
                 .fillMaxWidth()
                 .alpha(if (scanning) 0.7f else 1f)
-                .background(Brush.horizontalGradient(listOf(Color(0xFF1D4ED8), Color(0xFF0E7490))))
+                .background(BrandColors.ButtonBrush)
                 .heightIn(min = 68.dp)
                 .padding(horizontal = 16.dp),
             contentAlignment = Alignment.Center
@@ -341,24 +338,18 @@ private fun StatGrid(status: DeviceStatus?) {
 
 @Composable
 private fun StatCard(@StringRes label: Int, value: String, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-    ) {
-        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.Center) {
+    PhoneBoostCard(modifier) {
             Text(
                 value,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = BrandColors.TextPrimary
             )
             Text(
                 stringResource(label),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = BrandColors.TextSecondary
             )
-        }
     }
 }
 
@@ -380,23 +371,13 @@ private fun FeatureGrid(onClick: (FeatureKey) -> Unit) {
 
 @Composable
 private fun FeatureCard(feature: Feature, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Surface(
-        onClick = onClick,
-        modifier = modifier,
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)),
-        shadowElevation = 3.dp
-    ) {
-        Column(
-            Modifier.padding(16.dp).heightIn(min = 96.dp),
-            verticalArrangement = Arrangement.Center
-        ) {
+    PhoneBoostCard(modifier, onClick = onClick) {
+        Column(Modifier.heightIn(min = 80.dp), verticalArrangement = Arrangement.Center) {
             Box(
                 Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)),
+                    .background(BrandColors.NeonBlue.copy(alpha = 0.18f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(feature.emoji, fontSize = 24.sp)
@@ -406,7 +387,7 @@ private fun FeatureCard(feature: Feature, onClick: () -> Unit, modifier: Modifie
                 stringResource(feature.title),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = BrandColors.TextPrimary
             )
         }
     }

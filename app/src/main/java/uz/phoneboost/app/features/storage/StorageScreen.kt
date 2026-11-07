@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import uz.phoneboost.app.R
-import uz.phoneboost.app.ads.BannerAd
+import uz.phoneboost.app.core.designsystem.PhoneBoostDialog
 import uz.phoneboost.app.core.ui.FeaturePage
 import uz.phoneboost.app.core.ui.InfoRow
 import uz.phoneboost.app.core.ui.NoteText
@@ -191,32 +190,24 @@ fun StorageScreen(
             }
         })
         NoteText(stringResource(R.string.never_delete_without_confirm))
-        BannerAd()
     }
 
     val target = confirmDelete
     if (target != null) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = null },
-            title = { Text(stringResource(R.string.delete_confirm_title)) },
-            text = {
-                Text(
-                    stringResource(
-                        R.string.delete_confirm_text,
-                        target.name,
-                        formatBytes(context, target.sizeBytes) ?: ""
-                    )
-                )
+        PhoneBoostDialog(
+            title = stringResource(R.string.delete_confirm_title),
+            text = stringResource(
+                R.string.delete_confirm_text,
+                target.name,
+                formatBytes(context, target.sizeBytes) ?: ""
+            ),
+            confirmText = stringResource(R.string.delete_continue),
+            dismissText = stringResource(R.string.cancel),
+            onConfirm = {
+                confirmDelete = null
+                requestSystemDelete(target)
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = null
-                    requestSystemDelete(target)
-                }) { Text(stringResource(R.string.delete_continue)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = null }) { Text(stringResource(R.string.cancel)) }
-            }
+            onDismiss = { confirmDelete = null }
         )
     }
 }

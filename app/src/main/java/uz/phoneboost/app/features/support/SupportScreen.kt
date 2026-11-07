@@ -31,8 +31,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import uz.phoneboost.app.R
-import uz.phoneboost.app.ads.Ads
-import uz.phoneboost.app.ads.BannerAd
 import uz.phoneboost.app.core.AppConfig
 import uz.phoneboost.app.core.ui.InfoRow
 import uz.phoneboost.app.core.ui.NoteText
@@ -60,9 +58,7 @@ class SupportViewModel(application: Application) : AndroidViewModel(application)
 fun SupportScreen(viewModel: SupportViewModel = viewModel()) {
     val context = LocalContext.current
     val top by viewModel.top.collectAsStateWithLifecycle()
-    val rewardedReady by Ads.rewardedReady
     val unavailable = stringResource(R.string.settings_unavailable)
-    val thanks = stringResource(R.string.support_thanks)
 
     Box(Modifier.fillMaxSize()) {
         Column(
@@ -98,18 +94,9 @@ fun SupportScreen(viewModel: SupportViewModel = viewModel()) {
                     NoteText(stringResource(R.string.support_site_not_set))
                 }
                 NoteText(stringResource(R.string.support_anonymous_note))
-                if (rewardedReady) {
-                    SecondaryButton(stringResource(R.string.support_watch_ad), onClick = {
-                        val activity = context.findActivity()
-                        if (activity != null) {
-                            Ads.showRewarded(activity) { earned ->
-                                if (earned) Toast.makeText(context, thanks, Toast.LENGTH_LONG).show()
-                            }
-                        }
-                    })
-                    NoteText(stringResource(R.string.support_ad_note))
-                }
             }
+
+            DonationSection()
 
             SectionCard(R.string.support_top10) {
                 if (top.isEmpty()) {
@@ -137,7 +124,6 @@ fun SupportScreen(viewModel: SupportViewModel = viewModel()) {
                     }
                 }
             }
-            BannerAd()
         }
     }
 }
