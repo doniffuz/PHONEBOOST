@@ -12,14 +12,29 @@ import kotlinx.coroutines.launch
 import uz.phoneboost.app.data.device.DeviceStatusRepository
 import uz.phoneboost.app.domain.HealthResult
 import uz.phoneboost.app.domain.HealthScoreCalculator
+import uz.phoneboost.app.domain.Recommendation
+import uz.phoneboost.app.domain.RecommendationEngine
+import uz.phoneboost.app.domain.SCAN_STEP_COUNT
 import uz.phoneboost.app.domain.model.DeviceStatus
 
 data class HomeUiState(
     val status: DeviceStatus? = null,
     val result: HealthResult? = null,
-    val scanning: Boolean = false
-)
+    val recommendations: List<Recommendation> = emptyList(),
+    val checkedAtMillis: Long? = null,
+    val scanning: Boolean = false,
+    val scanStep: Int = 0,
+    val showResults: Boolean = false
+) {
+    fun withStatus(status: DeviceStatus): HomeUiState = copy(
+        status = status,
+        result = HealthScoreCalculator.calculate(status),
+        recommendations = RecommendationEngine.analyze(status),
+        checkedAtMillis = System.currentTimeMillis()
+    )
+}
 
+/** Ilova bo‘yicha umumiy (Activity darajasidagi) holat: Bosh sahifa, Hisobot va Batareya shu yerdan o‘qiydi. */
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = DeviceStatusRepository(application.applicationContext)
@@ -28,20 +43,30 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
 
     init {
+        refresh()
+    }
+
+    /** Animatsiyasiz, jimgina qayta o‘lchash (sahifa ochilganda). */
+    fun refresh() {
+        if (_state.value.scanning) return
         viewModelScope.launch {
             val status = repository.read()
-            _state.value = HomeUiState(status, HealthScoreCalculator.calculate(status), false)
+            _state.update { if (it.scanning) it else it.withStatus(status) }
         }
     }
 
-    /** Telefon holatini qayta o‘lchaydi (haqiqiy ma’lumot). */
+    /** “HOZIR OPTIMALLASHTIRISH”: holatni qayta o‘lchab, tavsiyalarni tayyorlaydi. */
     fun scan() {
         if (_state.value.scanning) return
         viewModelScope.launch {
-            _state.update { it.copy(scanning = true) }
+            _state.update { it.copy(scanning = true, scanStep = 0, showResults = false) }
             val status = repository.read()
-            delay(1500)
-            _state.value = HomeUiState(status, HealthScoreCalculator.calculate(status), false)
+            repeat(SCAN_STEP_COUNT) { index ->
+                delay(350)
+                _state.update { it.copy(scanStep = index + 1) }
+            }
+            delay(250)
+            _state.update { it.withStatus(status).copy(scanning = false, showResults = true) }
         }
     }
 }

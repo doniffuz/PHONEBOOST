@@ -47,4 +47,75 @@
     <string name="about_version">Versiya</string>
     <string name="about_developer">Dasturchi</string>
     <string name="about_owner">Loyiha egasi</string>
+
+    <string name="row_android" translatable="false">Android</string>
+    <string name="row_sdk" translatable="false">SDK</string>
+    <string name="row_model" translatable="false">Model</string>
+    <string name="power_usb" translatable="false">USB</string>
+
+    <string name="step_storage">Xotira tekshirildi</string>
+    <string name="step_ram">RAM tekshirildi</string>
+    <string name="step_battery">Batareya tekshirildi</string>
+    <string name="step_temperature">Harorat tekshirildi</string>
+    <string name="step_charging">Zaryad holati tekshirildi</string>
+    <string name="step_system">Tizim tekshirildi</string>
+    <string name="result_done">OPTIMALLASHTIRISH YAKUNLANDI</string>
+    <string name="result_count">%1$d ta tavsiya topildi</string>
+    <string name="result_ok">Hammasi joyida ✓</string>
+    <string name="label_reason">Sabab</string>
+    <string name="label_todo">Nima qilish kerak</string>
+    <string name="settings_note">Android bu sozlamani ilova ichidan o‘zgartirishga ruxsat bermaydi.</string>
+    <string name="action_open_settings">SOZLAMANI OCHISH</string>
+    <string name="settings_unavailable">Sozlamalar sahifasini ochib bo‘lmadi.</string>
+
+    <string name="rec_storage_title">Bo‘sh joy kam qolgan</string>
+    <string name="rec_storage_reason">Saqlash joyining 20% dan kami bo‘sh. To‘lib qolgan xotira telefonni sekinlashtirishi mumkin.</string>
+    <string name="rec_storage_todo">Keraksiz fayl va ilovalarni o‘chiring. Xotira sozlamalarini oching.</string>
+    <string name="rec_memory_title">Telefon xotirasi band</string>
+    <string name="rec_memory_reason">Ishlayotgan ilovalar xotiraning katta qismini egallagan.</string>
+    <string name="rec_memory_todo">Ishlatmayotgan ilovalarni yoping yoki o‘chiring. Ilovalar ro‘yxatini oching.</string>
+    <string name="rec_temp_title">Batareya harorati yuqori</string>
+    <string name="rec_temp_reason">Qizib ketgan telefon sekin ishlashi va batareya tezroq eskirishi mumkin.</string>
+    <string name="rec_temp_todo">Telefonni quyoshdan olib, salqin joyga qo‘ying va og‘ir o‘yinlarni to‘xtating.</string>
+    <string name="rec_battery_title">Batareya kam qolgan</string>
+    <string name="rec_battery_reason">Zaryad 20% dan kam va telefon quvvatlanmayapti.</string>
+    <string name="rec_battery_todo">Telefonni zaryadga ulang.</string>
+
+    <string name="report_card_health">Umumiy holat</string>
+    <string name="report_card_storage">Saqlash joyi</string>
+    <string name="report_card_ram">Telefon xotirasi (RAM)</string>
+    <string name="report_card_device">Qurilma</string>
+    <string name="report_card_recs">Tavsiyalar</string>
+    <string name="report_last_check">Oxirgi tekshiruv</string>
+    <string name="row_total">Jami</string>
+    <string name="row_used">Ishlatilgan</string>
+    <string name="row_free">Bo‘sh</string>
+    <string name="row_status">Holat</string>
+    <string name="row_percent">Zaryad</string>
+    <string name="row_manufacturer">Ishlab chiqaruvchi</string>
+    <string name="row_power">Quvvat manbai</string>
+    <string name="row_voltage">Kuchlanish</string>
+    <string name="row_tech">Texnologiya</string>
+    <string name="row_health">Batareya holati</string>
+    <string name="battery_details">Batafsil</string>
+    <string name="battery_health_unavailable">Bu qurilma battery health ma’lumotini Android orqali bermayapti.</string>
+    <string name="back">Orqaga</string>
+
+    <string name="temp_normal">Normal</string>
+    <string name="temp_warm">Biroz yuqori</string>
+    <string name="temp_hot">Juda yuqori</string>
+
+    <string name="charge_charging">Zaryadlanmoqda</string>
+    <string name="charge_discharging">Zaryad sarflanmoqda</string>
+    <string name="charge_not_charging">Zaryadlanmayapti</string>
+    <string name="charge_full">To‘liq zaryadlangan</string>
+    <string name="power_battery">Batareya</string>
+    <string name="power_ac">Quvvatlagich</string>
+    <string name="power_wireless">Simsiz zaryad</string>
+    <string name="bh_good">Yaxshi</string>
+    <string name="bh_overheat">Qizib ketgan</string>
+    <string name="bh_dead">Ishdan chiqqan</string>
+    <string name="bh_over_voltage">Kuchlanish yuqori</string>
+    <string name="bh_failure">Nosozlik</string>
+    <string name="bh_cold">Juda sovuq</string>
 </resources>

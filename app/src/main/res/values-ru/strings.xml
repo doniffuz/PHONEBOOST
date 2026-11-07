@@ -38,4 +38,70 @@
     <string name="about_version">Версия</string>
     <string name="about_developer">Разработчик</string>
     <string name="about_owner">Владелец проекта</string>
+
+    <string name="step_storage">Хранилище проверено</string>
+    <string name="step_ram">ОЗУ проверена</string>
+    <string name="step_battery">Батарея проверена</string>
+    <string name="step_temperature">Температура проверена</string>
+    <string name="step_charging">Состояние зарядки проверено</string>
+    <string name="step_system">Система проверена</string>
+    <string name="result_done">ОПТИМИЗАЦИЯ ЗАВЕРШЕНА</string>
+    <string name="result_count">Найдено рекомендаций: %1$d</string>
+    <string name="result_ok">Всё в порядке ✓</string>
+    <string name="label_reason">Причина</string>
+    <string name="label_todo">Что делать</string>
+    <string name="settings_note">Android не позволяет менять эту настройку из приложения.</string>
+    <string name="action_open_settings">ОТКРЫТЬ НАСТРОЙКУ</string>
+    <string name="settings_unavailable">Не удалось открыть настройки.</string>
+
+    <string name="rec_storage_title">Мало свободного места</string>
+    <string name="rec_storage_reason">Свободно меньше 20% памяти. Заполненная память может замедлять телефон.</string>
+    <string name="rec_storage_todo">Удалите ненужные файлы и приложения. Откройте настройки хранилища.</string>
+    <string name="rec_memory_title">Память телефона занята</string>
+    <string name="rec_memory_reason">Работающие приложения занимают большую часть памяти.</string>
+    <string name="rec_memory_todo">Закройте или удалите неиспользуемые приложения. Откройте список приложений.</string>
+    <string name="rec_temp_title">Высокая температура батареи</string>
+    <string name="rec_temp_reason">Перегретый телефон может работать медленнее, а батарея быстрее изнашивается.</string>
+    <string name="rec_temp_todo">Уберите телефон с солнца, дайте ему остыть и закройте тяжёлые игры.</string>
+    <string name="rec_battery_title">Низкий заряд батареи</string>
+    <string name="rec_battery_reason">Заряд ниже 20%, телефон не заряжается.</string>
+    <string name="rec_battery_todo">Подключите телефон к зарядке.</string>
+
+    <string name="report_card_health">Общее состояние</string>
+    <string name="report_card_storage">Хранилище</string>
+    <string name="report_card_ram">Память телефона (ОЗУ)</string>
+    <string name="report_card_device">Устройство</string>
+    <string name="report_card_recs">Рекомендации</string>
+    <string name="report_last_check">Последняя проверка</string>
+    <string name="row_total">Всего</string>
+    <string name="row_used">Занято</string>
+    <string name="row_free">Свободно</string>
+    <string name="row_status">Состояние</string>
+    <string name="row_percent">Заряд</string>
+    <string name="row_manufacturer">Производитель</string>
+    <string name="row_power">Источник питания</string>
+    <string name="row_voltage">Напряжение</string>
+    <string name="row_tech">Технология</string>
+    <string name="row_health">Состояние батареи</string>
+    <string name="battery_details">Подробности</string>
+    <string name="battery_health_unavailable">Это устройство не передаёт данные о состоянии батареи через Android.</string>
+    <string name="back">Назад</string>
+
+    <string name="temp_normal">Нормальная</string>
+    <string name="temp_warm">Повышенная</string>
+    <string name="temp_hot">Очень высокая</string>
+
+    <string name="charge_charging">Заряжается</string>
+    <string name="charge_discharging">Разряжается</string>
+    <string name="charge_not_charging">Не заряжается</string>
+    <string name="charge_full">Заряжена полностью</string>
+    <string name="power_battery">Батарея</string>
+    <string name="power_ac">Зарядное устройство</string>
+    <string name="power_wireless">Беспроводная зарядка</string>
+    <string name="bh_good">Хорошее</string>
+    <string name="bh_overheat">Перегрев</string>
+    <string name="bh_dead">Неисправна</string>
+    <string name="bh_over_voltage">Повышенное напряжение</string>
+    <string name="bh_failure">Неисправность</string>
+    <string name="bh_cold">Слишком холодная</string>
 </resources>

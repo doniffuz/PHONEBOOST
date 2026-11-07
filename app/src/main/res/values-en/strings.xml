@@ -38,4 +38,70 @@
     <string name="about_version">Version</string>
     <string name="about_developer">Developer</string>
     <string name="about_owner">Project owner</string>
+
+    <string name="step_storage">Storage checked</string>
+    <string name="step_ram">RAM checked</string>
+    <string name="step_battery">Battery checked</string>
+    <string name="step_temperature">Temperature checked</string>
+    <string name="step_charging">Charging state checked</string>
+    <string name="step_system">System checked</string>
+    <string name="result_done">OPTIMIZATION COMPLETE</string>
+    <string name="result_count">%1$d recommendation(s) found</string>
+    <string name="result_ok">Everything looks good ✓</string>
+    <string name="label_reason">Reason</string>
+    <string name="label_todo">What to do</string>
+    <string name="settings_note">Android does not allow changing this setting from inside the app.</string>
+    <string name="action_open_settings">OPEN SETTING</string>
+    <string name="settings_unavailable">Could not open settings.</string>
+
+    <string name="rec_storage_title">Low free space</string>
+    <string name="rec_storage_reason">Less than 20% of storage is free. A full storage can slow the phone down.</string>
+    <string name="rec_storage_todo">Remove files and apps you don’t need. Open the storage settings.</string>
+    <string name="rec_memory_title">Phone memory is busy</string>
+    <string name="rec_memory_reason">Running apps are using most of the memory.</string>
+    <string name="rec_memory_todo">Close or remove apps you don’t use. Open the apps list.</string>
+    <string name="rec_temp_title">Battery temperature is high</string>
+    <string name="rec_temp_reason">A hot phone can run slower and wear out the battery faster.</string>
+    <string name="rec_temp_todo">Keep the phone out of the sun, let it cool down and stop heavy games.</string>
+    <string name="rec_battery_title">Battery is low</string>
+    <string name="rec_battery_reason">Charge is under 20% and the phone is not charging.</string>
+    <string name="rec_battery_todo">Plug in the charger.</string>
+
+    <string name="report_card_health">Overall health</string>
+    <string name="report_card_storage">Storage</string>
+    <string name="report_card_ram">Phone memory (RAM)</string>
+    <string name="report_card_device">Device</string>
+    <string name="report_card_recs">Recommendations</string>
+    <string name="report_last_check">Last check</string>
+    <string name="row_total">Total</string>
+    <string name="row_used">Used</string>
+    <string name="row_free">Free</string>
+    <string name="row_status">Status</string>
+    <string name="row_percent">Charge</string>
+    <string name="row_manufacturer">Manufacturer</string>
+    <string name="row_power">Power source</string>
+    <string name="row_voltage">Voltage</string>
+    <string name="row_tech">Technology</string>
+    <string name="row_health">Battery condition</string>
+    <string name="battery_details">Details</string>
+    <string name="battery_health_unavailable">This device does not provide battery health data through Android.</string>
+    <string name="back">Back</string>
+
+    <string name="temp_normal">Normal</string>
+    <string name="temp_warm">Slightly high</string>
+    <string name="temp_hot">Very high</string>
+
+    <string name="charge_charging">Charging</string>
+    <string name="charge_discharging">Discharging</string>
+    <string name="charge_not_charging">Not charging</string>
+    <string name="charge_full">Fully charged</string>
+    <string name="power_battery">Battery</string>
+    <string name="power_ac">Charger</string>
+    <string name="power_wireless">Wireless charging</string>
+    <string name="bh_good">Good</string>
+    <string name="bh_overheat">Overheated</string>
+    <string name="bh_dead">Dead</string>
+    <string name="bh_over_voltage">Over voltage</string>
+    <string name="bh_failure">Failure</string>
+    <string name="bh_cold">Too cold</string>
 </resources>

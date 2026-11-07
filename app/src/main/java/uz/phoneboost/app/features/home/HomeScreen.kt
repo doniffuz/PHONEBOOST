@@ -54,28 +54,29 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import uz.phoneboost.app.R
 import uz.phoneboost.app.core.designsystem.BrandColors
 import uz.phoneboost.app.domain.HealthLevel
 import uz.phoneboost.app.domain.model.DeviceStatus
 import java.util.Locale
 
-private data class Feature(val emoji: String, @StringRes val title: Int)
+enum class FeatureKey { SPEED, GAME, BATTERY, STORAGE, DIAGNOSTICS, PHONE }
+
+private data class Feature(val key: FeatureKey, val emoji: String, @StringRes val title: Int)
 
 private val features = listOf(
-    Feature("⚡", R.string.feature_speed),
-    Feature("🎮", R.string.feature_game),
-    Feature("🔋", R.string.feature_battery),
-    Feature("💾", R.string.feature_memory),
-    Feature("🛡", R.string.feature_diagnostics),
-    Feature("📱", R.string.feature_phone)
+    Feature(FeatureKey.SPEED, "⚡", R.string.feature_speed),
+    Feature(FeatureKey.GAME, "🎮", R.string.feature_game),
+    Feature(FeatureKey.BATTERY, "🔋", R.string.feature_battery),
+    Feature(FeatureKey.STORAGE, "💾", R.string.feature_memory),
+    Feature(FeatureKey.DIAGNOSTICS, "🛡", R.string.feature_diagnostics),
+    Feature(FeatureKey.PHONE, "📱", R.string.feature_phone)
 )
 
 @Composable
 fun HomeScreen(
-    onFeatureClick: () -> Unit,
-    viewModel: HomeViewModel = viewModel()
+    viewModel: HomeViewModel,
+    onFeatureClick: (FeatureKey) -> Unit
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = MaterialTheme.colorScheme
@@ -113,6 +114,13 @@ fun HomeScreen(
             Spacer(Modifier.height(24.dp))
             OptimizeButton(scanning = state.scanning, onClick = viewModel::scan)
             Spacer(Modifier.height(20.dp))
+            if (state.scanning) {
+                ScanSteps(state.scanStep)
+                Spacer(Modifier.height(20.dp))
+            } else if (state.showResults) {
+                ScanResults(state.recommendations)
+                Spacer(Modifier.height(20.dp))
+            }
             StatGrid(state.status)
             Spacer(Modifier.height(20.dp))
             FeatureGrid(onFeatureClick)
@@ -342,7 +350,7 @@ private fun StatCard(@StringRes label: Int, value: String, modifier: Modifier = 
 }
 
 @Composable
-private fun FeatureGrid(onClick: () -> Unit) {
+private fun FeatureGrid(onClick: (FeatureKey) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         features.chunked(2).forEach { pair ->
             Row(
@@ -350,7 +358,7 @@ private fun FeatureGrid(onClick: () -> Unit) {
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 pair.forEach { feature ->
-                    FeatureCard(feature, onClick, Modifier.weight(1f).fillMaxHeight())
+                    FeatureCard(feature, { onClick(feature.key) }, Modifier.weight(1f).fillMaxHeight())
                 }
             }
         }

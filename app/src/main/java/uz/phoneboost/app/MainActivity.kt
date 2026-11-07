@@ -12,12 +12,14 @@ import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import uz.phoneboost.app.core.designsystem.PhoneBoostTheme
 import uz.phoneboost.app.core.designsystem.isDark
+import uz.phoneboost.app.features.home.HomeViewModel
 import uz.phoneboost.app.features.settings.SettingsViewModel
 import uz.phoneboost.app.navigation.PhoneBoostApp
 
 class MainActivity : AppCompatActivity() {
 
     private val settingsViewModel: SettingsViewModel by viewModels()
+    private val homeViewModel: HomeViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +39,7 @@ class MainActivity : AppCompatActivity() {
                     onDispose { }
                 }
                 PhoneBoostTheme(mode = current) {
-                    PhoneBoostApp(settingsViewModel)
+                    PhoneBoostApp(settingsViewModel, homeViewModel)
                 }
             }
         }
