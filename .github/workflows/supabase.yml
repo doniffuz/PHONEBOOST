@@ -63,7 +63,7 @@ jobs:
             [ -n "$ADMIN_BOOTSTRAP_EMAIL" ] && echo "ADMIN_BOOTSTRAP_EMAIL=$ADMIN_BOOTSTRAP_EMAIL"
             [ -n "$ADMIN_BOOTSTRAP_PASSWORD" ] && echo "ADMIN_BOOTSTRAP_PASSWORD=$ADMIN_BOOTSTRAP_PASSWORD"
           } > "$ENVF"
-          supabase secrets set --project-ref "$PROJECT_REF" --env-file "$ENVF" >/dev/null
+          supabase secrets set --project-ref "$PROJECT_REF" --env-file "$ENVF" --yes >/dev/null
           rm -f "$ENVF"
 
       - name: Edge Function deploy
