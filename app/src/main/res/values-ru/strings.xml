@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="home_subtitle">Проверьте и оптимизируйте свой телефон</string>
+    <string name="score_out_of">/100</string>
+    <string name="health_excellent">Отлично</string>
+    <string name="health_good">Хорошо</string>
+    <string name="health_attention">Внимание</string>
+    <string name="health_check">Нужна проверка</string>
+    <string name="unknown">Неизвестно</string>
+    <string name="scanning_message">Проверка телефона...</string>
+    <string name="optimize_now">🚀 ОПТИМИЗИРОВАТЬ СЕЙЧАС</string>
+    <string name="optimize_scanning">Проверка...</string>
+
+    <string name="stat_storage">Свободно</string>
+    <string name="stat_ram">Занятость памяти</string>
+    <string name="stat_battery">Батарея</string>
+    <string name="stat_temperature">Температура</string>
+
+    <string name="feature_speed">Скорость</string>
+    <string name="feature_battery">Батарея</string>
+    <string name="feature_memory">Память</string>
+    <string name="feature_diagnostics">Диагностика</string>
+    <string name="feature_phone">Телефон</string>
+
+    <string name="coming_soon">Этот раздел появится в следующем обновлении.</string>
+
+    <string name="nav_home">Главная</string>
+    <string name="nav_report">Отчёт</string>
+    <string name="nav_support">Поддержка</string>
+    <string name="nav_settings">Настройки</string>
+
+    <string name="settings_language">Язык</string>
+    <string name="settings_theme">Тема</string>
+    <string name="theme_system">Системная</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="settings_about">О приложении</string>
+    <string name="about_version">Версия</string>
+    <string name="about_developer">Разработчик</string>
+    <string name="about_owner">Владелец проекта</string>
+</resources>

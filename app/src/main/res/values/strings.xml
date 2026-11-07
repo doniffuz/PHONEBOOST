@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name" translatable="false">PHONEBOOST</string>
+    <string name="tagline" translatable="false">Clean • Optimize • Boost</string>
+    <string name="feature_game" translatable="false">Game Boost</string>
+    <string name="language_uz" translatable="false">🇺🇿 O‘zbek</string>
+    <string name="language_ru" translatable="false">🇷🇺 Русский</string>
+    <string name="language_en" translatable="false">🇬🇧 English</string>
+    <string name="dev_name" translatable="false">Donyor</string>
+    <string name="owner_name" translatable="false">Doniyorbek Abdullayev</string>
+
+    <string name="home_subtitle">Telefoningizni tekshiring va optimallashtiring</string>
+    <string name="score_out_of">/100</string>
+    <string name="health_excellent">Juda yaxshi</string>
+    <string name="health_good">Yaxshi</string>
+    <string name="health_attention">Diqqat</string>
+    <string name="health_check">Tekshirish kerak</string>
+    <string name="unknown">Noma’lum</string>
+    <string name="scanning_message">Telefon tekshirilmoqda...</string>
+    <string name="optimize_now">🚀 HOZIR OPTIMALLASHTIRISH</string>
+    <string name="optimize_scanning">Tekshirilmoqda...</string>
+
+    <string name="stat_storage">Bo‘sh joy</string>
+    <string name="stat_ram">Xotira bandligi</string>
+    <string name="stat_battery">Batareya</string>
+    <string name="stat_temperature">Harorat</string>
+
+    <string name="feature_speed">Tezlik</string>
+    <string name="feature_battery">Batareya</string>
+    <string name="feature_memory">Xotira</string>
+    <string name="feature_diagnostics">Diagnostika</string>
+    <string name="feature_phone">Telefon</string>
+
+    <string name="coming_soon">Bu bo‘lim keyingi bosqichda qo‘shiladi.</string>
+
+    <string name="nav_home">Bosh sahifa</string>
+    <string name="nav_report">Hisobot</string>
+    <string name="nav_support">Qo‘llov</string>
+    <string name="nav_settings">Sozlamalar</string>
+
+    <string name="settings_language">Til</string>
+    <string name="settings_theme">Tema</string>
+    <string name="theme_system">Tizim</string>
+    <string name="theme_light">Yorug‘</string>
+    <string name="theme_dark">Qorong‘i</string>
+    <string name="settings_about">Ilova haqida</string>
+    <string name="about_version">Versiya</string>
+    <string name="about_developer">Dasturchi</string>
+    <string name="about_owner">Loyiha egasi</string>
+</resources>
