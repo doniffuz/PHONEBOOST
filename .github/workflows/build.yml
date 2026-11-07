@@ -99,21 +99,18 @@ jobs:
           echo "Website: OK"
           echo "== Resources (XML + tillar paritetsi) =="
           python3 - <<'XMLCHECK'
-import xml.etree.ElementTree as ET
-from pathlib import Path
-
-files = list(Path("app/src/main/res").rglob("*.xml"))
-files.append(Path("app/src/main/AndroidManifest.xml"))
-
-for f in files:
-    try:
-        ET.parse(f)
-    except Exception as e:
-        print(f"::error file={f}::XML xato: {e}")
-        raise SystemExit(1)
-
-print(f"XML tekshiruvi OK: {len(files)} ta fayl")
-XMLCHECK
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          files = list(Path('app/src/main/res').rglob('*.xml'))
+          files.append(Path('app/src/main/AndroidManifest.xml'))
+          for f in files:
+              try:
+                  ET.parse(f)
+              except Exception as e:
+                  print(f'::error file={f}::XML xato: {e}')
+                  raise SystemExit(1)
+          print(f'XML tekshiruvi OK: {len(files)} ta fayl')
+          XMLCHECK
           python3 - <<'PY'
           import xml.etree.ElementTree as ET, sys
           def keys(p): return {e.get('name') for e in ET.parse(p).getroot()}
