@@ -67,7 +67,7 @@ jobs:
           rm -f "$ENVF"
 
       - name: Edge Function deploy
-        run: supabase functions deploy api --project-ref "$PROJECT_REF" --no-verify-jwt
+        run: supabase functions deploy api --project-ref "$PROJECT_REF" --no-verify-jwt --yes
 
       - name: Smoke test (haqiqiy HTTPS javoblar)
         run: |
