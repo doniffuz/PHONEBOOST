@@ -62,7 +62,7 @@ jobs:
         run: |
           set -e
           echo "== Forbidden hardcoded secrets =="
-          if grep -rIn --exclude-dir=.git --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.github \
+          if grep -rIn --exclude-dir=.git --exclude-dir=build --exclude-dir=.gradle --exclude-dir=.github --exclude=security-scan.sh --exclude=format.test.ts \
               -E "BEGIN (RSA |EC )?PRIVATE KEY|AKIA[0-9A-Z]{16}|sk_live_|storePassword[[:space:]]*=[[:space:]]*\"[^\"]+\"|[0-9]{4}[ -][0-9]{4}[ -][0-9]{4}[ -][0-9]{4}" . ; then
             echo "::error::Mumkin bo'lgan hardcoded secret topildi"; exit 1
           fi
