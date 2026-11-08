@@ -30,6 +30,7 @@ android {
         buildConfigField("String", "DONATION_CONFIG_URL", "\"${prop("PB_DONATION_CONFIG_URL")}\"")
         buildConfigField("String", "UPDATE_URL", "\"${prop("PB_UPDATE_URL")}\"")
         buildConfigField("String", "ADMIN_API_URL", "\"${prop("PB_ADMIN_API_URL")}\"")
+        buildConfigField("String", "API_BASE", "\"${prop("PB_API_BASE")}\"")
         buildConfigField("String", "DONATION_URL", "\"${prop("PB_DONATION_URL")}\"")
         buildConfigField("String", "CONTACT_EMAIL", "\"${prop("PB_CONTACT_EMAIL")}\"")
         buildConfigField("String", "PRIVACY_POLICY_URL", "\"${prop("PB_PRIVACY_POLICY_URL")}\"")

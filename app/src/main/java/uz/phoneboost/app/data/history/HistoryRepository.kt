@@ -65,6 +65,31 @@ class HistoryRepository(context: Context) {
 
     fun clear() = synchronized(LOCK) { runCatching { file.delete() }; Unit }
 
+    fun exportJson(): String = synchronized(LOCK) {
+        if (file.exists()) JSONArray(file.readText()).toString() else "[]"
+    }
+
+    fun importJson(json: String): Int = synchronized(LOCK) {
+        val incoming = JSONArray(json)
+        val entries = (0 until incoming.length()).mapNotNull { i ->
+            val o = incoming.optJSONObject(i) ?: return@mapNotNull null
+            HistoryEntry(
+                timeMillis = o.optLong("t", 0L),
+                score = o.optIntOrNull("s"),
+                ramBusyPercent = o.optIntOrNull("r"),
+                storageFreePercent = o.optIntOrNull("f"),
+                batteryPercent = o.optIntOrNull("b"),
+                batteryTempC = if (o.has("c") && !o.isNull("c")) o.optDouble("c").toFloat() else null,
+                source = o.optString("src", HistoryEntry.SOURCE_MANUAL),
+                type = o.optString("ty", HistoryEntry.TYPE_DIAGNOSTICS),
+                result = if (o.has("res") && !o.isNull("res")) o.optString("res") else null
+            )
+        }.take(MAX_ENTRIES)
+        writeLocked(entries)
+        entries.size
+    }
+
+
     private fun readLocked(): List<HistoryEntry> = runCatching {
         if (!file.exists()) return emptyList()
         val arr = JSONArray(file.readText())

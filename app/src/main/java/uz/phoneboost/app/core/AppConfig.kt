@@ -10,6 +10,7 @@ import uz.phoneboost.app.BuildConfig
  * TODO (Play Market oldidan): PB_PRIVACY_POLICY_URL ga HAQIQIY maxfiylik siyosati sahifasini bering.
  */
 object AppConfig {
+    val API_BASE: String get() = BuildConfig.API_BASE.trim().trimEnd('/')
     val SUPPORT_URL: String get() = BuildConfig.SUPPORT_URL
     val DONATION_URL: String get() = BuildConfig.DONATION_URL
     val CONTACT_EMAIL: String get() = BuildConfig.CONTACT_EMAIL

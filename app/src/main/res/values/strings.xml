@@ -482,4 +482,5 @@
     <string name="admin_send">Yuborish</string>
     <string name="admin_logs">Loglar</string>
     <string name="admin_logs_empty">Loglar yo‘q.</string>
+    <string name="announcements_title">E’lonlar</string>
 </resources>
