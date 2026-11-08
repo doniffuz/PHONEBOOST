@@ -17,7 +17,7 @@ insert into public.admin_sessions (session_id, user_id, expires_at, revoked_at) 
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee3','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1', now() + interval '1 hour', now()),           -- bekor qilingan
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee4','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1', now() + interval '1 hour', null),            -- admin emas
   ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5','cccccccc-cccc-4ccc-8ccc-ccccccccccc1', now() + interval '1 hour', null);            -- o'chirilgan admin
-insert into public.donation_events (amount, provider) values (5000, 'manual');
+insert into public.donation_events (amount, provider) values (5000, 'manual_card');
 insert into public.audit_logs (admin_email, action) values ('admin@test.local', 'seed');
 insert into public.app_versions (version_code, version_name, published) values (900, 'pub', true), (901, 'draft', false);
 insert into public.announcements (text, active) values ('on', true), ('off', false);
@@ -50,13 +50,14 @@ select is((select count(*) from public.audit_logs)::int, 0, 'user: audit_logs ko
 select is((select count(*) from public.donation_config)::int, 0, 'user: donation_config ko''rinmaydi');
 select is((select count(*) from public.error_logs)::int, 0, 'user: error_logs ko''rinmaydi');
 select is((select count(*) from public.admin_profiles)::int, 0, 'user: boshqa adminlar ko''rinmaydi');
-select is((with u as (update public.donation_events set status = 'confirmed' returning 1) select count(*) from u)::int, 0, 'user: donationni tasdiqlay olmaydi');
+select lives_ok($$update public.donation_events set status = 'confirmed'$$, 'user: RLS orqali donationni tasdiqlay olmaydi');
 select throws_ok($$insert into public.app_versions (version_code, version_name) values (998,'x')$$, '42501', null, 'user: versiya yoza olmaydi (RLS)');
 select throws_ok($$insert into public.audit_logs (admin_email, action) values ('x','x')$$, '42501', null, 'user: audit_logs yoza olmaydi');
 select throws_ok('select * from public.admin_sessions', '42501', null, 'user: admin_sessions yopiq');
 select throws_ok($$select public.rate_hit('k',1,60)$$, '42501', null, 'user: rate_hit yopiq');
 select throws_ok($$select public.challenge_consume(gen_random_uuid())$$, '42501', null, 'user: challenge_consume yopiq');
 reset role;
+select is((select status from public.donation_events limit 1), 'pending', 'user: donation statusini o''zgartira olmadi');
 
 -- ===== ADMIN, lekin yaroqsiz sessiyalar =====
 set local role authenticated;
@@ -82,7 +83,8 @@ select is((select count(*) from public.donation_events)::int, 1, 'admin: donatio
 select cmp_ok((select count(*) from public.audit_logs)::int, '>=', 1, 'admin: audit_logs ko''radi');
 select is((select count(*) from public.donation_config)::int, 1, 'admin: donation_config ko''radi');
 select is((select count(*) from public.app_versions)::int, 2, 'admin: draft versiyani ham ko''radi');
-select is((with u as (update public.donation_events set status = 'confirmed' returning 1) select count(*) from u)::int, 1, 'admin: donationni tasdiqlaydi');
+select lives_ok($$update public.donation_events set status = 'confirmed'$$, 'admin: donationni tasdiqlaydi');
+select is((select status from public.donation_events limit 1), 'confirmed', 'admin: donation statusi tasdiqlandi');
 select lives_ok($$insert into public.app_versions (version_code, version_name) values (902,'x')$$, 'admin: versiya yozadi');
 select lives_ok($$insert into public.announcements (text) values ('hello')$$, 'admin: e''lon yozadi');
 select throws_ok($$delete from public.donation_events$$, '42501', null, 'admin: donation yozuvini o''chira olmaydi');

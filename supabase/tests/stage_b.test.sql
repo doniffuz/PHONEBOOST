@@ -99,13 +99,15 @@ reset role;
 set local role authenticated;
 select set_config('request.jwt.claims', json_build_object('sub', 'b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2', 'role', 'authenticated', 'session_id', 'e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2')::text, true);
 select is((select count(*) from public.payment_providers)::int, 0, 'user: payment_providers ko''rinmaydi');
-select is((with u as (update public.payment_providers set enabled = true returning 1) select count(*) from u)::int, 0, 'user: providerni yoqa olmaydi');
+select lives_ok($$update public.payment_providers set enabled = true$$, 'user: RLS providerlarni o''zgartirishga yo''l qo''ymaydi');
 select throws_ok('select * from public.top_donors(10)', '42501', null, 'user: top_donors() yopiq');
 select is((select count(*) from public.donation_events)::int, 0, 'user: donationlar (ism/summa) ko''rinmaydi');
-select is((with u as (update public.donation_events set hidden = true returning 1) select count(*) from u)::int, 0, 'user: donationni yashira olmaydi');
+select lives_ok($$update public.donation_events set hidden = true$$, 'user: RLS donationlarni o''zgartirishga yo''l qo''ymaydi');
 select is((select count(*) from public.announcements)::int, 1, 'user: faqat ommaviy e''lon');
 select throws_ok($$insert into public.announcements (text) values ('hack')$$, '42501', null, 'user: e''lon yoza olmaydi');
 reset role;
+select is((select count(*) from public.payment_providers where enabled)::int, 0, 'user: provider holati o''zgarmagan');
+select is((select count(*) from public.donation_events where hidden)::int, 1, 'user: donation hidden holati o''zgarmagan');
 
 -- ===== ADMIN =====
 set local role authenticated;
