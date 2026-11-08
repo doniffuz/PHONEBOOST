@@ -50,7 +50,7 @@ select is((select count(*) from public.audit_logs)::int, 0, 'user: audit_logs ko
 select is((select count(*) from public.donation_config)::int, 0, 'user: donation_config ko''rinmaydi');
 select is((select count(*) from public.error_logs)::int, 0, 'user: error_logs ko''rinmaydi');
 select is((select count(*) from public.admin_profiles)::int, 0, 'user: boshqa adminlar ko''rinmaydi');
-select lives_ok($$update public.donation_events set status = 'confirmed'$$, 'user: RLS orqali donationni tasdiqlay olmaydi');
+select lives_ok($$update public.donation_events set status = 'success'$$, 'user: RLS orqali donationni tasdiqlay olmaydi');
 select throws_ok($$insert into public.app_versions (version_code, version_name) values (998,'x')$$, '42501', null, 'user: versiya yoza olmaydi (RLS)');
 select throws_ok($$insert into public.audit_logs (admin_email, action) values ('x','x')$$, '42501', null, 'user: audit_logs yoza olmaydi');
 select throws_ok('select * from public.admin_sessions', '42501', null, 'user: admin_sessions yopiq');
@@ -83,8 +83,8 @@ select is((select count(*) from public.donation_events)::int, 1, 'admin: donatio
 select cmp_ok((select count(*) from public.audit_logs)::int, '>=', 1, 'admin: audit_logs ko''radi');
 select is((select count(*) from public.donation_config)::int, 1, 'admin: donation_config ko''radi');
 select is((select count(*) from public.app_versions)::int, 3, 'admin: draft versiyani ham ko''radi');
-select lives_ok($$update public.donation_events set status = 'confirmed'$$, 'admin: donationni tasdiqlaydi');
-select is((select status from public.donation_events limit 1), 'confirmed', 'admin: donation statusi tasdiqlandi');
+select lives_ok($$update public.donation_events set status = 'success'$$, 'admin: donationni tasdiqlaydi');
+select is((select status from public.donation_events limit 1), 'success', 'admin: donation statusi tasdiqlandi');
 select lives_ok($$insert into public.app_versions (version_code, version_name) values (902,'x')$$, 'admin: versiya yozadi');
 select lives_ok($$insert into public.announcements (text) values ('hello')$$, 'admin: e''lon yozadi');
 select throws_ok($$delete from public.donation_events$$, '42501', null, 'admin: donation yozuvini o''chira olmaydi');
