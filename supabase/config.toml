@@ -1,0 +1,20 @@
+project_id = "bmyvvwyfgswjgktlsqlu"
+
+# Funksiya o'z autentifikatsiyasini qiladi (admin tokeni); ochiq endpointlar (update, donation-config) JWT talab qilmaydi.
+[functions.api]
+verify_jwt = false
+
+# Admin Auth: ro'yxatdan o'tish yopiq; adminni faqat Dashboard orqali qo'shasiz. OTP 6 xonali, 5 daqiqa amal qiladi, qayta yuborish 60s dan keyin.
+[auth]
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+otp_length = 6
+otp_expiry = 300
+max_frequency = "60s"
+
+[auth.rate_limit]
+email_sent = 8
+token_verifications = 30

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PHONEBOOST — Support</title>
+<meta name="description" content="PHONEBOOST: telefon holatini tekshirish va optimallashtirishga yordam beruvchi Android ilova. Rasmiy support sayti.">
+<meta name="theme-color" content="#1F6FEB">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PHONEBOOST — Support">
+<meta property="og:description" content="Phone health check and optimization helper for Android.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self' https:; base-uri 'none'; form-action 'none'">
+</head>
+<body>
+<header><div class="wrap">
+  <div class="bar">
+    <a class="logo" href="#home"><img src="favicon.svg" alt="" width="32" height="32"><span>PHONEBOOST</span></a>
+    <div class="lang" role="group" aria-label="Language">
+      <button data-lang="uz" aria-pressed="true">UZ</button><button data-lang="ru" aria-pressed="false">RU</button><button data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </div>
+  <nav aria-label="Main">
+    <a href="#about" data-i18n="nav_about"></a><a href="#features" data-i18n="nav_features"></a><a href="#screenshots" data-i18n="nav_screens"></a><a href="#download" data-i18n="nav_download"></a><a href="#support" data-i18n="nav_support"></a><a href="#donation" data-i18n="nav_donation"></a><a href="#top10" data-i18n="nav_top"></a><a href="#contact" data-i18n="nav_contact"></a><a href="#privacy" data-i18n="nav_privacy"></a><a href="#terms" data-i18n="nav_terms"></a>
+  </nav>
+</div></header>
+<main class="wrap">
+<section id="home" class="hero">
+  <h1 data-i18n="home_title"></h1>
+  <p class="lead" data-i18n="home_text"></p>
+  <div class="actions"><a class="btn" href="#download" data-i18n="nav_download"></a><a class="btn secondary" href="#support" data-i18n="nav_support"></a></div>
+</section>
+<section id="about"><h2 data-i18n="nav_about"></h2><p class="lead" data-i18n="about_text"></p><p class="muted" data-i18n="about_text2"></p></section>
+<section id="features"><h2 data-i18n="nav_features"></h2><p class="muted" data-i18n="features_note"></p><div class="grid" id="featureGrid"></div></section>
+<section id="screenshots"><h2 data-i18n="nav_screens"></h2><p class="muted" data-i18n="shots_note"></p><div class="shots" id="shots"></div></section>
+<section id="download"><h2 data-i18n="nav_download"></h2><p class="muted" data-i18n="download_text"></p><div class="actions"><a id="dlBtn" class="btn" rel="noopener noreferrer" aria-disabled="true"></a></div><p class="muted" id="dlNote"></p></section>
+<section id="support"><h2 data-i18n="nav_support"></h2><p class="lead" data-i18n="support_text"></p><div class="grid"><div class="card"><h3 data-i18n="sup1_t"></h3><p class="muted" data-i18n="sup1_d"></p></div><div class="card"><h3 data-i18n="sup2_t"></h3><p class="muted" data-i18n="sup2_d"></p></div></div></section>
+<section id="donation"><h2 data-i18n="nav_donation"></h2><p class="muted" data-i18n="don_text"></p>
+  <div class="card"><div class="amounts" id="amounts" role="group" aria-label="Amount"></div>
+  <label for="custom" data-i18n="don_custom"></label><input id="custom" type="number" inputmode="numeric" min="1000" max="10000000" step="1000">
+  <label for="dname" data-i18n="don_name"></label><input id="dname" type="text" maxlength="40" autocomplete="off">
+  <div class="check"><input id="anon" type="checkbox" checked><label for="anon" data-i18n="don_anon"></label></div>
+  <div class="actions"><button class="btn" id="donBtn" type="button"></button></div>
+  <div class="status warn" id="donStatus" role="status"></div></div>
+</section>
+<section id="top10"><h2 data-i18n="nav_top"></h2><p class="muted" data-i18n="top_note"></p><ol class="top" id="topList"></ol><p class="muted" id="topStatus" role="status"></p></section>
+<section id="contact"><h2 data-i18n="nav_contact"></h2><div class="card"><p><strong data-i18n="dev_label"></strong>: DONYOR<br><strong data-i18n="owner_label"></strong>: DONIYORBEK ABDULLAYEV<br><strong>Telegram</strong>: @Doniku_Admin</p><div class="actions"><a class="btn" id="tgBtn" target="_blank" rel="noopener noreferrer" href="https://t.me/Doniku_Admin" data-i18n="tg_btn"></a></div></div></section>
+<section id="privacy" class="doc"><h2 data-i18n="nav_privacy"></h2><div id="privacyBody"></div></section>
+<section id="terms" class="doc"><h2 data-i18n="nav_terms"></h2><div id="termsBody"></div></section>
+</main>
+<footer><div class="wrap"><span>© 2026 PHONEBOOST · DONYOR</span></div></footer>
+<script src="config.js"></script><script src="i18n.js"></script><script src="app.js"></script>
+</body></html>

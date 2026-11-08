@@ -1,0 +1,37 @@
+name: Backend tests (RLS, OTP, security)
+on:
+  push:
+    paths: ["supabase/**", "scripts/**", ".github/workflows/backend-tests.yml"]
+  pull_request:
+    paths: ["supabase/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Edge Function sof yordamchilar (unit tests)
+        run: node --experimental-strip-types --test supabase/functions/api/lib.test.ts
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Lokal Supabase (migrationlar qo'llanadi)
+        run: supabase start -x realtime,storage-api,imgproxy,edge-runtime,logflare,vector,studio,mailpit
+      - name: RLS / admin role / OTP / rate limit testlari (pgTAP)
+        run: supabase test db
+      - name: Statik xavfsizlik skaneri (scripts/security-scan.sh)
+        run: bash scripts/security-scan.sh
+      - name: Parol/OTP/service_role/karta repoda yo'qligini tekshirish
+        run: |
+          if grep -rInE "service_role|SERVICE_ROLE" --include=*.kt --include=*.kts --include=*.js --include=*.html app website | grep -v "^supabase/"; then
+            echo "::error::Klient kodida service_role"; exit 1; fi
+          if grep -rInE "ADMIN_JWT_SECRET|ADMIN_BOOTSTRAP" . --exclude-dir=.git --exclude=backend-tests.yml; then
+            echo "::error::Eski custom admin sirlari qolgan"; exit 1; fi
+          echo "OK"

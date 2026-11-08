@@ -1,0 +1,35 @@
+name: Admin Web Panel (typecheck, lint, test, build, security)
+on:
+  push:
+    paths: ["admin-panel/**", "scripts/**", ".github/workflows/admin-panel.yml"]
+  pull_request:
+    paths: ["admin-panel/**", "scripts/**"]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  panel:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin-panel
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: node scripts/build.mjs
+      - name: Build natijasida maxfiy kalit yo'qligi
+        working-directory: .
+        run: |
+          if grep -rInE "service_role|SERVICE_ROLE|sb_secret_|eyJ[A-Za-z0-9_-]{20,}\." admin-panel/dist; then
+            echo "::error::dist ichida maxfiy kalit"; exit 1; fi
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/security-scan.sh
