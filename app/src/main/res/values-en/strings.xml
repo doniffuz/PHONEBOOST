@@ -480,4 +480,5 @@
     <string name="admin_send">Send</string>
     <string name="admin_logs">Logs</string>
     <string name="admin_logs_empty">No logs.</string>
+    <string name="announcements_title">Announcements</string>
 </resources>
