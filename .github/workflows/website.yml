@@ -1,36 +1,60 @@
-name: Deploy Support website
+name: Deploy PHONEBOOST Website and Admin Panel
+
 on:
   push:
     branches: [main]
-    paths: ["website/**"]
+    paths:
+      - "website/**"
+      - "admin-panel/**"
+      - ".github/workflows/website.yml"
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages
   cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Pages sozlamasini tekshirish
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          if gh api "repos/${GITHUB_REPOSITORY}/pages" >/dev/null 2>&1; then
-            echo "GitHub Pages yoqilgan."
-          else
-            echo "::warning::GitHub Pages sozlanmagan bo'lishi mumkin. Repo Settings > Pages > Source: GitHub Actions ni tanlang, so'ng workflow'ni qayta ishga tushiring."
-          fi
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          path: website
-      - id: deployment
+          node-version: 22
+
+      - name: Build Admin Panel
+        working-directory: admin-panel
+        run: |
+          npm install
+          npm run build
+
+      - name: Prepare Pages files
+        run: |
+          mkdir -p public
+          cp -a website/. public/
+          mkdir -p public/admin
+          cp -a admin-panel/dist/. public/admin/
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
         uses: actions/deploy-pages@v4
