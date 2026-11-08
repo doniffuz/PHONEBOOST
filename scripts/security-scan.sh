@@ -20,7 +20,7 @@ chk "service_role klientda yo'q" 'service_role|SERVICE_ROLE|sb_secret_' app admi
 chk "JWT/maxfiy kalit literali yo'q" 'eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.|sb_secret_[A-Za-z0-9_-]+|sbp_[a-f0-9]{30,}'
 chk "DB connection string parol bilan yo'q" 'postgres(ql)?://[^ "'"'"'@]+:[^ "'"'"'@]+@'
 chk "qattiq yozilgan parol/secret/otp yo'q" '(password|passwd|secret|api[_-]?key|otp)["'"'"' ]*[:=]["'"'"' ]*["'"'"'][A-Za-z0-9!@#$%^&*_.-]{6,}["'"'"']' --include=*.kt --include=*.ts --include=*.js --include=*.sql --include=*.toml --include=*.html --exclude=*.test.ts --exclude=*.test.sql
-chk "admin parol/bootstrap qiymatlari kodga yozilmagan" '(ADMIN_JWT_SECRET|ADMIN_BOOTSTRAP_EMAIL|ADMIN_BOOTSTRAP_PASSWORD|ADMIN_PASSWORD)[\"' ]*[:=][\"' ]*[\"''][^\"'']{6,}[\"'']' --include=*.kt --include=*.ts --include=*.js --include=*.sql --include=*.toml --include=*.html
+chk "admin parol/bootstrap qiymatlari kodga yozilmagan" '(ADMIN_JWT_SECRET|ADMIN_BOOTSTRAP_EMAIL|ADMIN_BOOTSTRAP_PASSWORD|ADMIN_PASSWORD)["'"'"' ]*[:=]["'"'"' ]*["'"'"'][^"'"'"']{6,}["'"'"']' --include=*.kt --include=*.ts --include=*.js --include=*.sql --include=*.toml --include=*.html
 # Karta raqami: 12-19 raqamli ketma-ketlik (testlardagi aniq soxta qiymatlardan tashqari).
 out=$(grep -rInE "${EX[@]}" --include=*.kt --include=*.ts --include=*.js --include=*.sql --include=*.md --include=*.json --include=*.html --include=*.xml -e '\b[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{4}[ -]?[0-9]{1,7}\b' . 2>/dev/null \
   | grep -v -E '1111222233334444|123456789012345|1234 5678 9012 3456|dist/|versionCode|build_report' || true)
@@ -28,7 +28,7 @@ if [ -n "$out" ]; then echo "FAIL: karta-ga o'xshash raqam"; echo "$out" | head 
 chk "OTP/parol/karta logga yozilmaydi" 'console\.(log|info|debug|warn|error)\([^)]*(otp|password|card|token|code)' supabase admin-panel/src
 chk "admin panelda innerHTML/eval yo'q (XSS)" 'innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(|new Function' admin-panel/src
 chk "admin panelda localStorage'da token yo'q" 'localStorage' admin-panel/src
-echo "INFO: WRITE_SECURE_SETTINGS mavjud — Play Store mosligi alohida tekshiriladi." 
+chk "WRITE_SECURE_SETTINGS manifestda yo'q" 'uses-permission[^>]*WRITE_SECURE_SETTINGS' app/src/main/AndroidManifest.xml
 # admin bypass: is_admin() har doim true qaytarmasin / "bypass|backdoor" so'zlari
 chk "admin bypass izlari yo'q" 'bypass|backdoor|skip_?auth|disable_?auth' supabase admin-panel/src app/src/main
 exit $fail
