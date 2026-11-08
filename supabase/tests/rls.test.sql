@@ -33,7 +33,7 @@ select throws_ok('select * from public.admin_sessions', '42501', null, 'anon: ad
 select throws_ok('select * from public.login_challenges', '42501', null, 'anon: login_challenges yopiq');
 select throws_ok('select * from public.rate_limits', '42501', null, 'anon: rate_limits yopiq');
 select throws_ok('select * from public.device_stats', '42501', null, 'anon: device_stats yopiq');
-select is((select count(*) from public.app_versions)::int, 1, 'anon: faqat published versiya');
+select is((select count(*) from public.app_versions)::int, 2, 'anon: faqat published versiyalar');
 select is((select count(*) from public.announcements)::int, 1, 'anon: faqat faol e''lon');
 select throws_ok($$insert into public.app_versions (version_code, version_name) values (999,'x')$$, '42501', null, 'anon: versiya yoza olmaydi');
 select throws_ok($$insert into public.announcements (text) values ('x')$$, '42501', null, 'anon: e''lon yoza olmaydi');
@@ -68,7 +68,7 @@ select set_config('request.jwt.claims', json_build_object('sub','aaaaaaaa-aaaa-4
 select is(public.is_admin(), false, 'admin + bekor qilingan sessiya: admin EMAS');
 select set_config('request.jwt.claims', json_build_object('sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1','role','authenticated')::text, true);
 select is(public.is_admin(), false, 'admin + session_id yo''q (OTP aylanib o''tilgan): admin EMAS');
-select is((select count(*) from public.audit_logs)::int, 0, 'OTP\'siz sessiya: audit_logs yo''q');
+select is((select count(*) from public.audit_logs)::int, 0, 'OTP''siz sessiya: audit_logs yo''q');
 select set_config('request.jwt.claims', json_build_object('sub','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1','role','authenticated','session_id','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5')::text, true);
 select is(public.is_admin(), false, 'boshqa userning sessiyasi: admin EMAS');
 select set_config('request.jwt.claims', json_build_object('sub','cccccccc-cccc-4ccc-8ccc-ccccccccccc1','role','authenticated','session_id','eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee5')::text, true);
@@ -82,7 +82,7 @@ select is(public.is_admin(), true, 'admin: is_admin() = true');
 select is((select count(*) from public.donation_events)::int, 1, 'admin: donation_events ko''radi');
 select cmp_ok((select count(*) from public.audit_logs)::int, '>=', 1, 'admin: audit_logs ko''radi');
 select is((select count(*) from public.donation_config)::int, 1, 'admin: donation_config ko''radi');
-select is((select count(*) from public.app_versions)::int, 2, 'admin: draft versiyani ham ko''radi');
+select is((select count(*) from public.app_versions)::int, 3, 'admin: draft versiyani ham ko''radi');
 select lives_ok($$update public.donation_events set status = 'confirmed'$$, 'admin: donationni tasdiqlaydi');
 select is((select status from public.donation_events limit 1), 'confirmed', 'admin: donation statusi tasdiqlandi');
 select lives_ok($$insert into public.app_versions (version_code, version_name) values (902,'x')$$, 'admin: versiya yozadi');
