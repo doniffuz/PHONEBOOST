@@ -15,9 +15,6 @@ object AppConfig {
     val CONTACT_EMAIL: String get() = BuildConfig.CONTACT_EMAIL
     val PRIVACY_POLICY_URL: String get() = BuildConfig.PRIVACY_POLICY_URL
 
-    /** Backend manzili (faqat HTTPS). Bo'sh = backend sozlanmagan: ilova hech narsani soxtalashtirmaydi. */
-    val API_BASE: String get() = BuildConfig.API_BASE.trim().trimEnd('/').takeIf { it.startsWith("https://") } ?: ""
-
     /** Top 10 ro'yxati shu fayldan o'qiladi (app/src/main/assets). */
     const val SUPPORTERS_ASSET: String = "supporters.json"
 }

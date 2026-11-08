@@ -131,7 +131,6 @@ fun HomeScreen(
                 ScanResults(state.recommendations, onOpenTarget)
                 Spacer(Modifier.height(20.dp))
             }
-            AnnouncementsCard()
             StatGrid(state.status)
             Spacer(Modifier.height(20.dp))
             FeatureGrid(onFeatureClick)

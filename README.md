@@ -22,6 +22,7 @@ PB_CONTACT_EMAIL=...           # ixtiyoriy; bo'sh = tugma o'chiq
 PB_PRIVACY_POLICY_URL=...      # TODO: Play Market uchun majburiy
 PB_DONATION_CONFIG_URL=https://...  # HTTPS JSON {"bank":"..","holder":"..","card":".."}; karta APK/repo ichida YO'Q, faqat serverda
 PB_UPDATE_URL=https://...           # JSON {"versionCode":5,"versionName":"0.5.0","changelog":"..","url":"https://.."}
+PB_ADMIN_API_URL=https://...        # Admin backend; bo'sh bo'lsa Admin Panel "Backend connection required" ko'rsatadi
 ```
 - Ilovada reklama YO‘Q (AdMob/UMP butunlay olib tashlangan).
 
@@ -38,20 +39,24 @@ Kalit yaratish: `keytool -genkeypair -v -keystore release.jks -alias phoneboost 
 
 ## Release konfiguratsiyasi (GitHub)
 **Secrets:** `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` (imzo).
-**Variables:** `PB_SUPPORT_URL`, `PB_PRIVACY_POLICY_URL` (sayt URL + `#privacy`), `PB_DONATION_URL`, `PB_DONATION_CONFIG_URL`, `PB_UPDATE_URL`.
+**Variables:** `PB_SUPPORT_URL`, `PB_PRIVACY_POLICY_URL` (sayt URL + `#privacy`), `PB_DONATION_URL`, `PB_DONATION_CONFIG_URL`, `PB_UPDATE_URL`, `PB_ADMIN_API_URL`.
 
 ## Xavfsizlik
 - Karta raqami, admin parol/secret kodda, README da va APK ichida yo'q. Karta faqat HTTPS config orqali olinadi, xotirada turadi, loglanmaydi.
 - To'lov muvaffaqiyati ilova tomonidan hech qachon taxmin qilinmaydi.
-- Admin autentifikatsiyasi Android ilovada YO'Q: u alohida Admin Web Panelda (Supabase Auth + email OTP), serverda tekshiriladi.
+- Admin autentifikatsiyasi serverda; token faqat xotirada.
 
 ## Ma'lum cheklovlar
+- Animatsiya tezligi / Game Boost animatsiya o'zgartirishi uchun ADB: `adb shell pm grant uz.phoneboost.app android.permission.WRITE_SECURE_SETTINGS`.
 - Android boshqa ilovalarni yopish, FPS oshirish, boshqa ilovalar keshini tozalashga ruxsat bermaydi: ilova bularni qilmaydi.
-- `WRITE_SECURE_SETTINGS` manifestdan OLIB TASHLANGAN. Speed sahifasi animatsiya qiymatlarini faqat o'qiydi va Developer options yo'riqnomasini beradi; Game Boost tizim sozlamasini o'zgartirmaydi.
-- Admin Web Panel: `admin-panel/` (alohida loyiha, Android ichida admin ekran YO'Q). Build: `cd admin-panel && npm install && npm run check`. `public/config.js` ga faqat ommaviy API manzili yoziladi.
-- Click/Payme/Uzum/TBC: merchant integratsiya YO'Q. Ular hamma joyda "Not configured"; yoqib bo'lmaydi va success qilib bo'lmaydi (DB trigger + Edge Function). Manual card/QR to'lovlar admin qo'lda tasdiqlamaguncha `pending` qoladi.
-- Android: e'londagi rasm (`imageUrl`) hali ko'rsatilmaydi (rasm yuklash kutubxonasi yo'q); QR faqat havola/matn sifatida chiqadi, QR rasm chizilmaydi.
+- Admin Panel va donation statistikasi uchun backend alohida kerak (bu repoda yo'q).
 - Gradle wrapper birinchi CI ishida avtomatik yaratiladi.
+
+## Animatsiya tezligi (Speed) va WRITE_SECURE_SETTINGS
+Uchala animatsiya qiymatini (Window/Transition/Animator) 0x–2x ga o'zgartirish uchun ilovaga maxsus ruxsat kerak. Oddiy ilova uni o'zi ololmaydi; foydalanuvchi bir marta ADB orqali beradi:
+`adb shell pm grant uz.phoneboost.app android.permission.WRITE_SECURE_SETTINGS`
+Ruxsat yo'q bo'lsa tugmalar o'chiq turadi va hech narsa o'zgarmaydi. Asl qiymatlar saqlanadi, "Avvalgi qiymatlarni qaytarish" bilan tiklanadi.
+Google Play: bu ruxsatni e'lon qilish siyosat bo'yicha ko'rib chiqilishi mumkin. Rad etilsa, manifestdan olib tashlansa, ilova Developer options yo'riqnomasiga qaytadi.
 
 ## Holat (build tekshiruvi)
 - Gradle wrapper (8.9) repoga qo'shilgan; CI `./gradlew` bilan build qiladi.
@@ -59,21 +64,8 @@ Kalit yaratish: `keytool -genkeypair -v -keystore release.jks -alias phoneboost 
 - `QUERY_ALL_PACKAGES` ishlatilmaydi (faqat `<queries>` orqali launcher ilovalari ko'rinadi).
 
 ## Backend (Supabase)
-Loyiha: `bmyvvwyfgswjgktlsqlu`. Fayllar: `supabase/migrations/` (jadvallar + RLS policy'lar + admin role), `supabase/functions/api/` (Edge Function), `supabase/tests/rls.test.sql` (pgTAP).
-**Admin kirish:** Supabase Auth (email+parol) → emailga 6 xonali OTP → server `admin_sessions` ga yozadi. `is_admin()` (RLS) faqat shunday to'liq tasdiqlangan sessiyani admin deb biladi. Batafsil: `docs/ADMIN_ARCHITECTURE.md`.
-**Birinchi admin (parol repoda YO'Q):** Dashboard > Authentication > Add user (parolni o'zingiz o'rnating), keyin `supabase/seed_admin.sql` ni SQL Editor'da bir marta ishga tushiring.
-**Auth sozlamalari (OTP expiry/rate limit, signup yopiq):** `supabase/config.toml` lokal uchun; hosted loyihada Dashboard > Authentication da yoki `supabase config push` bilan qo'llang va tekshiring.
-Deploy: GitHub Actions "Deploy Supabase backend" (`supabase.yml`). **Secrets:** `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD` (ixtiyoriy: `SUPABASE_ANON_KEY` — smoke test uchun). **Variable:** `ADMIN_ALLOWED_ORIGINS` (admin web panel domenlari, vergul bilan; bo'sh = CORS yopiq). `service_role` kalitini Supabase funksiyaga o'zi beradi: u hech qayerga yozilmaydi.
-Endpointlar (`.../functions/v1/api`): `/admin/login` → `/admin/verify-otp` → `/admin/refresh`, `/admin/logout|me|stats|users|optimization|game-boost|diagnostics|donations|errors|version|announcements|maintenance|settings|audit-logs` (admin sessiya bilan), ochiq (rate limit bilan): `GET /update[?current=N]`, `/donation-config`, `/donation-status?ref=PB-…`, `/top-donors`, `/announcements`, `/status`, `POST /ingest`, `/donation-event` (har doim `pending`). Admin: `/admin/top-donors`, `/admin/donations`, `/admin/announcements`, `/admin/version`, `/admin/settings` (provayderlar, QR, tavsif).
-`PB_UPDATE_URL` = `.../update`, `PB_DONATION_CONFIG_URL` = `.../donation-config`.
-Karta raqami faqat admin orqali bazaga yoziladi (`POST /admin/settings` `donation.card`), repoda yo'q; audit logda qiymati yozilmaydi. Donation "confirmed" holatini faqat admin qo'yadi.
-
-## Tekshiruv (qanday ishga tushiriladi)
-```
-node --experimental-strip-types --test supabase/functions/api/lib.test.ts   # backend sof mantiq
-supabase start && supabase test db                                          # RLS/pgTAP (Docker kerak)
-cd admin-panel && npm install && npm run check                              # typecheck + lint + test + build
-bash scripts/security-scan.sh                                               # statik xavfsizlik skaneri
-./gradlew lint testDebugUnitTest assembleDebug                              # Android (CI: build.yml)
-```
-CI: `backend-tests.yml`, `admin-panel.yml`, `build.yml`. CI natijasi ko'rilmaguncha hech narsa "PASS" deb hisoblanmaydi.
+Loyiha: `bmyvvwyfgswjgktlsqlu`. Fayllar: `supabase/migrations/` (11 jadval, RLS yoqilgan, policy yo'q), `supabase/functions/api/` (Edge Function).
+Deploy: GitHub Actions "Deploy Supabase backend" (`supabase.yml`). Kerakli **Secrets**: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`, `ADMIN_BOOTSTRAP_EMAIL`, `ADMIN_BOOTSTRAP_PASSWORD` (ixtiyoriy: `ADMIN_JWT_SECRET`, bo'lmasa avtomatik yaratiladi).
+Endpointlar (`https://bmyvvwyfgswjgktlsqlu.supabase.co/functions/v1/api`): `/admin/login|stats|users|optimization|game-boost|diagnostics|donations|errors|version|announcements|maintenance|settings` (token bilan), ochiq: `/update`, `/donation-config`, `/status`, `/ingest`, `/donation-event`.
+`PB_ADMIN_API_URL` = shu URL, `PB_UPDATE_URL` = `.../update`, `PB_DONATION_CONFIG_URL` = `.../donation-config` (build workflow'da avtomatik default).
+Karta raqami faqat admin orqali bazaga yoziladi (`POST /admin/settings` `donation.card`), repoda yo'q. Donation "confirmed" holatini faqat admin qo'yadi.

@@ -37,6 +37,7 @@ import uz.phoneboost.app.core.designsystem.PhoneBoostButton
 import uz.phoneboost.app.core.designsystem.PhoneBoostCard
 import uz.phoneboost.app.core.designsystem.PhoneBoostLoading
 import uz.phoneboost.app.core.designsystem.PhoneBoostSecondaryButton
+import uz.phoneboost.app.core.designsystem.PhoneBoostStatusBadge
 import uz.phoneboost.app.core.ui.FeaturePage
 import uz.phoneboost.app.core.ui.InfoRow
 import uz.phoneboost.app.core.ui.NoteText
@@ -48,6 +49,7 @@ import uz.phoneboost.app.data.game.BoostAction
 import uz.phoneboost.app.data.game.GameBoostManager
 import uz.phoneboost.app.data.game.GamesRepository
 import uz.phoneboost.app.data.game.InstalledGame
+import uz.phoneboost.app.data.game.RestoreOutcome
 import uz.phoneboost.app.data.history.HistoryEntry
 import uz.phoneboost.app.data.history.HistoryRepository
 import uz.phoneboost.app.features.home.HomeViewModel
@@ -66,7 +68,9 @@ fun GameScreen(homeViewModel: HomeViewModel, onBack: () -> Unit, onOpenApps: () 
     val unknown = stringResource(R.string.unknown)
 
     var games by remember { mutableStateOf<List<InstalledGame>?>(null) }
+    var active by remember { mutableStateOf(GameBoostManager.isActive(context)) }
     var actions by remember { mutableStateOf<List<BoostAction>>(emptyList()) }
+    var restoreMsg by remember { mutableStateOf<Int?>(null) }
     val notOpen = stringResource(R.string.settings_unavailable)
 
     LaunchedEffect(Unit) { games = withContext(Dispatchers.IO) { GamesRepository(context).load() } }
@@ -82,6 +86,13 @@ fun GameScreen(homeViewModel: HomeViewModel, onBack: () -> Unit, onOpenApps: () 
                 status?.batteryTempC?.let { String.format(Locale.getDefault(), "%.1f °C", it) } ?: unknown
             )
             InfoRow(stringResource(R.string.stat_storage), formatBytes(context, status?.storageFreeBytes) ?: unknown)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.gb_status), color = BrandColors.TextSecondary, modifier = Modifier.weight(1f))
+                PhoneBoostStatusBadge(
+                    stringResource(if (active) R.string.gb_active else R.string.gb_inactive),
+                    if (active) BrandColors.Good else BrandColors.TextSecondary
+                )
+            }
         }
 
         if (actions.isNotEmpty()) {
@@ -95,6 +106,21 @@ fun GameScreen(homeViewModel: HomeViewModel, onBack: () -> Unit, onOpenApps: () 
                     a.reason?.let { NoteText(stringResource(it)) }
                 }
             }
+        }
+
+        SectionCard(R.string.gb_restore_title) {
+            NoteText(stringResource(R.string.gb_restore_note))
+            PhoneBoostSecondaryButton(stringResource(R.string.gb_restore), onClick = {
+                val outcome = GameBoostManager.restore(context)
+                active = GameBoostManager.isActive(context)
+                restoreMsg = when (outcome) {
+                    RestoreOutcome.RESTORED -> R.string.gb_restore_ok
+                    RestoreOutcome.NOTHING_TO_RESTORE -> R.string.gb_restore_nothing
+                    RestoreOutcome.NO_PERMISSION -> R.string.gb_restore_noperm
+                    RestoreOutcome.FAILED -> R.string.gb_restore_fail
+                }
+            })
+            restoreMsg?.let { NoteText(stringResource(it), color = BrandColors.Cyan) }
         }
 
         SectionCard(R.string.gb_detected) {
@@ -133,14 +159,15 @@ fun GameScreen(homeViewModel: HomeViewModel, onBack: () -> Unit, onOpenApps: () 
                 Spacer(Modifier.size(12.dp))
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     PhoneBoostButton(stringResource(R.string.gb_boost), onClick = {
-                        actions = GameBoostManager.advice()
+                        actions = GameBoostManager.boost(context)
+                        active = GameBoostManager.isActive(context)
                         val s = status
                         if (s != null) scope.launch(Dispatchers.IO) {
                             runCatching {
                                 HistoryRepository(context).add(
                                     HistoryEntry.from(
                                         s, null, HistoryEntry.SOURCE_MANUAL, HistoryEntry.TYPE_GAME_BOOST,
-                                        "game=${g.packageName}; session=check"
+                                        "game=${g.packageName}; active=$active"
                                     )
                                 )
                             }

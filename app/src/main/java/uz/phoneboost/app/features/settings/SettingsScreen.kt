@@ -1,14 +1,6 @@
 package uz.phoneboost.app.features.settings
 
 import androidx.annotation.StringRes
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.material3.Switch
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import uz.phoneboost.app.data.backup.BackupPrefs
-import uz.phoneboost.app.data.backup.BackupRepository
-import uz.phoneboost.app.data.backup.RestoreResult
 import androidx.appcompat.app.AppCompatDelegate
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
@@ -72,36 +64,14 @@ private val themes = listOf(
 fun SettingsScreen(
     viewModel: SettingsViewModel,
     onOpenAutomation: () -> Unit = {},
-    onOpenUpdate: () -> Unit = {}
+    onOpenUpdate: () -> Unit = {},
+    onOpenAdmin: () -> Unit = {}
 ) {
     val mode by viewModel.themeMode.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lang = LocalConfiguration.current.locales.get(0).language
     val currentLang = if (lang == "ru" || lang == "en") lang else "uz"
     var showPrivacy by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    val backupPrefs = remember { BackupPrefs(context) }
-    val backupRepo = remember { BackupRepository(context) }
-    var autoBackup by remember { mutableStateOf(backupPrefs.autoBackupEnabled) }
-    val msgSaved = stringResource(R.string.backup_saved)
-    val msgFailed = stringResource(R.string.backup_failed)
-    val msgInvalid = stringResource(R.string.backup_invalid)
-    val msgRestored = stringResource(R.string.backup_restored)
-    val exportLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
-        if (uri != null) scope.launch {
-            Toast.makeText(context, if (backupRepo.export(uri)) msgSaved else msgFailed, Toast.LENGTH_SHORT).show()
-        }
-    }
-    val importLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) scope.launch {
-            val text = when (val r = backupRepo.restore(uri)) {
-                is RestoreResult.Ok -> msgRestored
-                RestoreResult.Invalid, RestoreResult.TooLarge -> msgInvalid
-                RestoreResult.Failed -> msgFailed
-            }
-            Toast.makeText(context, text, Toast.LENGTH_LONG).show()
-        }
-    }
     val unavailable = stringResource(R.string.settings_unavailable)
     val version = remember {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
@@ -181,6 +151,7 @@ fun SettingsScreen(
                     }
                     SettingsRow(R.string.settings_privacy, R.string.settings_privacy_hint) { showPrivacy = true }
                     SettingsRow(R.string.settings_update, R.string.settings_update_hint) { onOpenUpdate() }
+                    SettingsRow(R.string.settings_admin, R.string.settings_admin_hint) { onOpenAdmin() }
                     SettingsRow(R.string.settings_rate, R.string.settings_rate_hint) {
                         if (!context.openRateApp()) {
                             Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
@@ -195,29 +166,6 @@ fun SettingsScreen(
                             Toast.makeText(context, unavailable, Toast.LENGTH_SHORT).show()
                         }
                     }
-                }
-            }
-
-            SectionTitle(R.string.backup_title)
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.25f)),
-                shadowElevation = 2.dp
-            ) {
-                Column(Modifier.fillMaxWidth()) {
-                    Row(
-                        Modifier.fillMaxWidth().heightIn(min = 64.dp).padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(Modifier.weight(1f)) {
-                            Text(stringResource(R.string.backup_auto), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
-                            Text(stringResource(R.string.backup_auto_hint), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        }
-                        Switch(checked = autoBackup, onCheckedChange = { autoBackup = it; backupPrefs.autoBackupEnabled = it })
-                    }
-                    SettingsRow(R.string.backup_export, R.string.backup_export_hint) { exportLauncher.launch("phoneboost-backup.json") }
-                    SettingsRow(R.string.backup_restore, R.string.backup_restore_hint) { importLauncher.launch(arrayOf("application/json", "text/plain")) }
                 }
             }
 

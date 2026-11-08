@@ -33,7 +33,7 @@ PHONEBOOST MAX telefoningizning haqiqiy holatini ko‘rsatadi: RAM, batareya, xo
 Ilova soxta FPS, soxta tezlashtirish yoki soxta natija ko‘rsatmaydi.
 
 ## Permissions izohi
-INTERNET (yangilanish va donation sozlamasi), POST_NOTIFICATIONS (faqat avtomatik ogohlantirish yoqilsa), READ_MEDIA_* (faqat "katta fayllarni topish" bosilganda), QUERY_ALL_PACKAGES ishlatilmaydi.
+INTERNET (yangilanish va donation sozlamasi), POST_NOTIFICATIONS (faqat avtomatik ogohlantirish yoqilsa), READ_MEDIA_* (faqat "katta fayllarni topish" bosilganda), WRITE_SECURE_SETTINGS (ADB orqali berilsa Animation Speed uchun), QUERY_ALL_PACKAGES ishlatilmaydi.
 
 ## What's new
 PHONEBOOST MAX: yangi premium dizayn, Smart Optimize, Universal Game Boost, History, PDF hisobot, avtomatik diagnostika, yangilanish tekshiruvi.

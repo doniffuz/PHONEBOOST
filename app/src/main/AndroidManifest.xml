@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Hech qaysi permission foydalanuvchidan avtomatik so'ralmaydi. Quyidagilar oddiy (install-time) permissionlar. -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -16,6 +17,10 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
+
+    <!-- Animatsiya tezligi (Speed): oddiy ilova bu ruxsatni o'zi ola olmaydi. Foydalanuvchi ADB orqali bergandagina ishlaydi: adb shell pm grant uz.phoneboost.app android.permission.WRITE_SECURE_SETTINGS -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
 
     <queries>
         <!-- Ilovalar ro'yxati (QUERY_ALL_PACKAGES kerak emas): faqat launcher'da ko'rinadigan ilovalar. -->
@@ -38,9 +43,6 @@
 
     <application
         android:allowBackup="true"
-        android:fullBackupContent="@xml/backup_rules"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:backupAgent=".data.backup.PhoneBoostBackupAgent"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"

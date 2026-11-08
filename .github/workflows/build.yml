@@ -18,6 +18,7 @@ jobs:
       ORG_GRADLE_PROJECT_PB_DONATION_URL: ${{ vars.PB_DONATION_URL }}
       ORG_GRADLE_PROJECT_PB_DONATION_CONFIG_URL: ${{ vars.PB_DONATION_CONFIG_URL || 'https://bmyvvwyfgswjgktlsqlu.supabase.co/functions/v1/api/donation-config' }}
       ORG_GRADLE_PROJECT_PB_UPDATE_URL: ${{ vars.PB_UPDATE_URL || 'https://bmyvvwyfgswjgktlsqlu.supabase.co/functions/v1/api/update' }}
+      ORG_GRADLE_PROJECT_PB_ADMIN_API_URL: ${{ vars.PB_ADMIN_API_URL || 'https://bmyvvwyfgswjgktlsqlu.supabase.co/functions/v1/api' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -97,7 +98,19 @@ jobs:
           grep -q "pages" .github/workflows/website.yml
           echo "Website: OK"
           echo "== Resources (XML + tillar paritetsi) =="
-          for f in $(find app/src/main/res app/src/main/AndroidManifest.xml -name '*.xml'); do xmllint --noout "$f" || { echo "::error::XML xato: $f"; exit 1; }; done
+          python3 - <<'XMLCHECK'
+          import xml.etree.ElementTree as ET
+          from pathlib import Path
+          files = list(Path('app/src/main/res').rglob('*.xml'))
+          files.append(Path('app/src/main/AndroidManifest.xml'))
+          for f in files:
+              try:
+                  ET.parse(f)
+              except Exception as e:
+                  print(f'::error file={f}::XML xato: {e}')
+                  raise SystemExit(1)
+          print(f'XML tekshiruvi OK: {len(files)} ta fayl')
+          XMLCHECK
           python3 - <<'PY'
           import xml.etree.ElementTree as ET, sys
           def keys(p): return {e.get('name') for e in ET.parse(p).getroot()}
@@ -216,7 +229,7 @@ jobs:
               grep -A6 'What went wrong' build.log | head -30
             fi
             echo
-            echo "Known limitations: build CI ishidan oldin lokal tasdiqlanmagan; Admin Web Panel alohida loyiha sifatida hali yaratilmagan (NOT DONE); Click/Payme avtomatik to'lov hali yo'q; karta ma'lumoti PB_DONATION_CONFIG_URL (HTTPS) orqali olinadi."
+            echo "Known limitations: build CI ishidan oldin lokal tasdiqlanmagan; Animation Speed WRITE_SECURE_SETTINGS ni faqat ADB bilan oladi; Admin Panel backend YO'Q (NOT DONE); donation statistikasi backend YO'Q; karta ma'lumoti PB_DONATION_CONFIG_URL (HTTPS) orqali olinadi."
             echo "Eslatma: bu hisobot faqat shu workflow ishida haqiqatan bajarilgan qadamlarni ko'rsatadi."
             echo
             echo "STATUSLAR"
@@ -232,8 +245,12 @@ jobs:
             else
               echo "LINT/TESTS: FAILED yoki bajarilmadi (checks.log ga qarang)"
             fi
-            echo "DEVICE NOT TESTED: haqiqiy telefonda sinov (PDF, bildirishnoma, Game Boost, Backup) bu CI bilan tasdiqlanmagan"
-            echo "BACKEND: Supabase backend 'Deploy Supabase backend' va 'Backend tests' workflow'lari bilan tekshiriladi (bu build ularni tasdiqlamaydi)"
+            echo "DEVICE NOT TESTED: haqiqiy telefonda sinov (Animation Speed, PDF, bildirishnoma, Game Boost) bu CI bilan tasdiqlanmagan"
+            if [ -z "${ORG_GRADLE_PROJECT_PB_ADMIN_API_URL}" ]; then
+              echo "BACKEND REQUIRED: PB_ADMIN_API_URL sozlanmagan, Admin Panel 'Backend connection required' ko'rsatadi"
+            else
+              echo "BACKEND: URL'lar berilgan; backend deploy 'Deploy Supabase backend' workflow'i smoke testi bilan tekshiriladi"
+            fi
             if [ -z "${ORG_GRADLE_PROJECT_PB_UPDATE_URL}" ]; then echo "UPDATE: PB_UPDATE_URL sozlanmagan (ilovada 'Sozlanmagan' ko'rsatiladi)"; fi
             if [ -z "${ORG_GRADLE_PROJECT_PB_DONATION_CONFIG_URL}" ]; then echo "DONATION: PB_DONATION_CONFIG_URL sozlanmagan (karta ko'rsatilmaydi)"; fi
             if [ '${{ steps.signing.outputs.signed }}' = 'true' ]; then

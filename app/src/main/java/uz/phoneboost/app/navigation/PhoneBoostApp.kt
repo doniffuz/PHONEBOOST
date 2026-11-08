@@ -27,6 +27,7 @@ import uz.phoneboost.app.core.designsystem.PhoneBoostBackground
 import uz.phoneboost.app.core.designsystem.PbNavItem
 import androidx.compose.ui.graphics.Color
 import uz.phoneboost.app.domain.AppTarget
+import uz.phoneboost.app.features.admin.AdminScreen
 import uz.phoneboost.app.features.smart.SmartOptimizeScreen
 import uz.phoneboost.app.features.update.UpdateScreen
 import uz.phoneboost.app.features.apps.AppsScreen
@@ -60,6 +61,7 @@ private object Route {
     const val AUTOMATION = "automation"
     const val SMART = "smart"
     const val UPDATE = "update"
+    const val ADMIN = "admin"
 
     /** Bosh sahifadan ochiladigan ichki sahifalar: pastki navigatsiyada “Bosh sahifa” tanlangan ko‘rinadi. */
     val homeChildren = setOf(SMART, BATTERY, SPEED, GAME, STORAGE, DIAGNOSTICS, DEVICE, PRIVACY, APPS)
@@ -106,7 +108,7 @@ fun PhoneBoostApp(settingsViewModel: SettingsViewModel, homeViewModel: HomeViewM
                 val selected = destination?.hierarchy?.any { it.route == tab.route } == true ||
                     (tab == Tab.HOME && destination?.route in Route.homeChildren) ||
                     (tab == Tab.REPORT && destination?.route == Route.HISTORY) ||
-                    (tab == Tab.SETTINGS && (destination?.route == Route.AUTOMATION || destination?.route == Route.UPDATE))
+                    (tab == Tab.SETTINGS && (destination?.route == Route.AUTOMATION || destination?.route == Route.UPDATE || destination?.route == Route.ADMIN))
                 PbNavItem(tab.route, stringResource(tab.label), tab.icon, selected)
             }
             PhoneBoostBottomBar(items) { route ->
@@ -133,6 +135,7 @@ fun PhoneBoostApp(settingsViewModel: SettingsViewModel, homeViewModel: HomeViewM
             }
             composable(Route.SMART) { SmartOptimizeScreen(onBack = back, onOpenTarget = { navController.openTarget(it) }) }
             composable(Route.UPDATE) { UpdateScreen(onBack = back) }
+            composable(Route.ADMIN) { AdminScreen(onBack = back) }
             composable(Route.BATTERY) { BatteryScreen(homeViewModel, onBack = back) }
             composable(Route.SPEED) { SpeedScreen(onBack = back) }
             composable(Route.GAME) {
@@ -163,7 +166,8 @@ fun PhoneBoostApp(settingsViewModel: SettingsViewModel, homeViewModel: HomeViewM
                 SettingsScreen(
                     settingsViewModel,
                     onOpenAutomation = { navController.navigate(Route.AUTOMATION) },
-                    onOpenUpdate = { navController.navigate(Route.UPDATE) }
+                    onOpenUpdate = { navController.navigate(Route.UPDATE) },
+                    onOpenAdmin = { navController.navigate(Route.ADMIN) }
                 )
             }
         }

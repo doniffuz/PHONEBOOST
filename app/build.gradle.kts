@@ -29,8 +29,7 @@ android {
         buildConfigField("String", "SUPPORT_URL", "\"${prop("PB_SUPPORT_URL")}\"")
         buildConfigField("String", "DONATION_CONFIG_URL", "\"${prop("PB_DONATION_CONFIG_URL")}\"")
         buildConfigField("String", "UPDATE_URL", "\"${prop("PB_UPDATE_URL")}\"")
-        // Backend (Supabase Edge Function) ommaviy manzili: https://<ref>.supabase.co/functions/v1/api. Maxfiy kalit EMAS.
-        buildConfigField("String", "API_BASE", "\"${prop("PB_API_BASE")}\"")
+        buildConfigField("String", "ADMIN_API_URL", "\"${prop("PB_ADMIN_API_URL")}\"")
         buildConfigField("String", "DONATION_URL", "\"${prop("PB_DONATION_URL")}\"")
         buildConfigField("String", "CONTACT_EMAIL", "\"${prop("PB_CONTACT_EMAIL")}\"")
         buildConfigField("String", "PRIVACY_POLICY_URL", "\"${prop("PB_PRIVACY_POLICY_URL")}\"")
@@ -92,6 +91,5 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     testImplementation("junit:junit:4.13.2")
-    testImplementation("org.json:json:20240303") // Android org.json stub unit testda ishlamaydi
 
 }

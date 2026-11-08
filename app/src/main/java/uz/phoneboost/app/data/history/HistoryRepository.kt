@@ -63,26 +63,11 @@ class HistoryRepository(context: Context) {
         writeLocked(list)
     }
 
-    /** Zaxira uchun: tarixni JSON massiv matni sifatida beradi (fayldagi qisqa kalitlar bilan). */
-    fun exportJson(): String = synchronized(LOCK) { if (file.exists()) runCatching { file.readText() }.getOrDefault("[]") else "[]" }
-
-    /** Tiklash: kelgan massivni tekshirib, mavjud tarix bilan birlashtiradi (takrorlarsiz). Qo'shilgan yozuvlar sonini qaytaradi. */
-    fun importJson(text: String): Int = synchronized(LOCK) {
-        val current = readLocked()
-        val incoming = parse(text)
-        val known = current.map { it.timeMillis to it.type }.toSet()
-        val added = incoming.filter { it.timeMillis > 0 && (it.timeMillis to it.type) !in known }
-        writeLocked((current + added).sortedByDescending { it.timeMillis }.take(MAX_ENTRIES))
-        added.size
-    }
-
     fun clear() = synchronized(LOCK) { runCatching { file.delete() }; Unit }
 
-    private fun readLocked(): List<HistoryEntry> =
-        if (!file.exists()) emptyList() else parse(runCatching { file.readText() }.getOrDefault("[]"))
-
-    private fun parse(text: String): List<HistoryEntry> = runCatching {
-        val arr = JSONArray(text)
+    private fun readLocked(): List<HistoryEntry> = runCatching {
+        if (!file.exists()) return emptyList()
+        val arr = JSONArray(file.readText())
         (0 until arr.length()).mapNotNull { i ->
             val o = arr.optJSONObject(i) ?: return@mapNotNull null
             HistoryEntry(

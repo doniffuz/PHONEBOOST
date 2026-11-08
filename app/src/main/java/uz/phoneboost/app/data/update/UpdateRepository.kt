@@ -3,7 +3,6 @@ package uz.phoneboost.app.data.update
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import uz.phoneboost.app.core.AppConfig
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -15,38 +14,32 @@ sealed interface UpdateResult {
 }
 
 /**
- * Yangilanish haqida HAQIQIY ma'lumot (HTTPS JSON). Manba: PB_UPDATE_URL, bo'lmasa backend (PB_API_BASE + /update).
- * Ikkalasi ham yo'q = "sozlanmagan". Minimal qo'llab-quvvatlanadigan versiyadan past ilova MAJBURIY yangilanadi.
+ * Yangilanish haqida HAQIQIY ma’lumot: HTTPS JSON ({"versionCode":5,"versionName":"0.5.0","changelog":"...","url":"https://..."}).
+ * Manzil PB_UPDATE_URL orqali beriladi. Berilmasa — “sozlanmagan”, soxta yangilanish ko‘rsatilmaydi.
  */
-class UpdateRepository(configUrl: String) {
-    private val url: String = configUrl.ifBlank { AppConfig.API_BASE.let { if (it.isEmpty()) "" else "$it/update" } }
+class UpdateRepository(private val configUrl: String) {
 
     suspend fun check(currentVersionCode: Int): UpdateResult {
-        if (url.isBlank() || !url.startsWith("https://")) return UpdateResult.NotConfigured
+        if (configUrl.isBlank() || !configUrl.startsWith("https://")) return UpdateResult.NotConfigured
         return withContext(Dispatchers.IO) {
             runCatching {
-                val c = URL(url).openConnection() as HttpURLConnection
+                val c = URL(configUrl).openConnection() as HttpURLConnection
                 c.connectTimeout = 8000
                 c.readTimeout = 8000
                 try {
-                    parse(JSONObject(c.inputStream.bufferedReader().use { it.readText() }), currentVersionCode)
+                    val j = JSONObject(c.inputStream.bufferedReader().use { it.readText() })
+                    val code = j.optInt("versionCode", -1)
+                    if (code < 0) UpdateResult.Error
+                    else if (code <= currentVersionCode) UpdateResult.UpToDate
+                    else UpdateResult.Available(
+                        j.optString("versionName"), code, j.optString("changelog"),
+                        (j.optString("downloadUrl").ifBlank { j.optString("url") }).takeIf { it.startsWith("https://") } ?: "",
+                        j.optBoolean("forceUpdate", false)
+                    )
                 } finally {
                     c.disconnect()
                 }
             }.getOrDefault(UpdateResult.Error)
         }
-    }
-
-    internal fun parse(j: JSONObject, current: Int): UpdateResult {
-        val code = j.optInt("versionCode", -1)
-        if (code < 0) return UpdateResult.Error
-        val d = UpdateLogic.decide(current, code, j.optInt("minSupportedVersionCode", 0), j.optBoolean("forceUpdate", false))
-        if (!d.updateAvailable) return UpdateResult.UpToDate
-        return UpdateResult.Available(
-            j.optString("versionName"), code,
-            j.optString("releaseNotes").ifBlank { j.optString("changelog") },
-            (j.optString("downloadUrl").ifBlank { j.optString("url") }).takeIf { it.startsWith("https://") } ?: "",
-            d.force
-        )
     }
 }
